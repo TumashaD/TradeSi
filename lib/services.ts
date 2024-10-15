@@ -2,6 +2,7 @@ import { verifySession } from "@/lib/dal";
 import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
+import pool from "@/lib/db";  // Import your database connection
 const API_URL = process.env.API_URL;
 
 
@@ -115,3 +116,19 @@ export async function getCategories(): Promise<string[]> {
         return [];
     }
 }
+
+/**
+ * Fetch the first name and last name of all customers from the database.
+ * @returns {Promise<{ First_Name: string, Last_Name: string }[]>} A promise that resolves to an array of customer first and last names.
+ */
+export async function getCustomers(): Promise<{ First_Name: string, Last_Name: string }[]> {
+    try {
+        const connection = await pool();  // Await the connection to the database
+        const [rows] = await connection.query('SELECT First_Name, Last_Name FROM Customer');
+        return rows as { First_Name: string, Last_Name: string }[]; // Return only first name and last name of customers
+    } catch (error) {
+        console.error('Failed to fetch customers:', error);
+        return [];
+    }
+}
+
