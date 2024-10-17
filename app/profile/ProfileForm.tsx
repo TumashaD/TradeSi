@@ -3,8 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button"
+import toast from "react-hot-toast"; // Import the toast function
 import {
   Form,
   FormControl,
@@ -48,10 +49,22 @@ export function ProfileForm() {
     },
   });
 
+  // Use useEffect to check for the reload state and show the toast
+  useEffect(() => {
+    if (localStorage.getItem("formSubmitted") === "true") {
+      toast.success("Form submitted successfully!", { duration: 2000 });
+      localStorage.removeItem("formSubmitted"); // Remove the flag after showing the toast
+    }
+  }, []);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
-    // Refresh or handle the submit logic as needed
-    window.location.reload(); // This will refresh the page
+    
+    // Set a flag in localStorage to track submission
+    localStorage.setItem("formSubmitted", "true");
+
+    // Refresh the page after setting the flag
+    window.location.reload();
   };
 
   return (
