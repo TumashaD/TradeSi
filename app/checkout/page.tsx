@@ -15,13 +15,17 @@ type Product = {
 };
 
 const CheckoutPage = () => {
-    const searchParams = useSearchParams();
-    const totalPrice = searchParams.get("totalPrice");
+    // const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
+    const [totalPrice, setTotalPrice] = useState(0);
 
     // Retrieve products from local storage
     useEffect(() => {
         const storedProducts = localStorage.getItem("cartProducts");
+        const totalPrice = localStorage.getItem("totalPrice");
+        if (totalPrice) {
+            setTotalPrice(parseFloat(totalPrice));
+        }
         if (storedProducts) {
             setProducts(JSON.parse(storedProducts));
         }

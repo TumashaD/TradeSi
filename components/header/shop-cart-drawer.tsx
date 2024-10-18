@@ -37,9 +37,10 @@ export function ShopCartDrawer() {
         setIsLoading(true);
         // Store products in local storage
         localStorage.setItem("cartProducts", JSON.stringify(products));
+        localStorage.setItem("totalPrice", calculateTotalPrice().toFixed(2));
         setTimeout(() => {
             setIsLoading(false);
-            router.push(`/checkout?totalPrice=${calculateTotalPrice().toFixed(2)}`);
+            router.push(`/checkout`);
         }, 2000);
     };
 
