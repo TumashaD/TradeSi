@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckoutForm } from './CheckoutForm';
-
+import { getCustomerById } from "../../lib/services"; // Import your server-side data fetching logic
 
 type Product = {
     id: string;
@@ -15,11 +15,11 @@ type Product = {
 };
 
 const CheckoutPage = () => {
-    // const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [customerData, setCustomerData] = useState<any>(null); // Define state for customer data
 
-    // Retrieve products from local storage
+    // Retrieve products and customer data from local storage and server
     useEffect(() => {
         const storedProducts = localStorage.getItem("cartProducts");
         const totalPrice = localStorage.getItem("totalPrice");
@@ -29,13 +29,20 @@ const CheckoutPage = () => {
         if (storedProducts) {
             setProducts(JSON.parse(storedProducts));
         }
+
+        // Fetch customer data (ensure this is asynchronous if necessary)
+        const fetchCustomerData = async () => {
+            const data = await getCustomerById("1"); // Call your data fetching function
+            setCustomerData(data);
+        };
+
+        fetchCustomerData();
     }, []);
 
     return (
         <div className="flex h-screen">
             {/* Cart Section */}
             <div className="w-3/5 p-1 mr-10 mt-10">
-                {/* <h2 className="text-lg font-medium text-gray-900 mb-4">Shopping Cart</h2> */}
                 <div className="flow-root">
                     <ul role="list" className="-my-6 divide-y divide-gray-200">
                         {products.map((product) => (
@@ -56,9 +63,6 @@ const CheckoutPage = () => {
                                     </div>
                                     <div className="flex flex-1 items-end justify-between text-sm">
                                         <p>Qty {product.quantity}</p>
-                                        {/* <div className="flex">
-                                            <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500">Remove</button>
-                                        </div> */}
                                     </div>
                                 </div>
                             </li>
@@ -68,27 +72,15 @@ const CheckoutPage = () => {
                 <div className="border-t pt-4 mt-20">
                     <div className="flex justify-between text-base font-medium">
                         <p>Total</p>
-                        <p>${totalPrice}</p>
+                        <p>${totalPrice.toFixed(2)}</p>
                     </div>
-                    {/* <div className="mt-6">
-                        <a href="#" className="flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700">Checkout</a>
-                    </div> */}
-                    {/* <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
-                        <p>
-                            or
-                            <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500">
-                                Continue Shopping
-                                <span aria-hidden="true"> &rarr;</span>
-                            </button>
-                        </p>
-                    </div> */}
                 </div>
             </div>
 
             {/* Address Form Section */}
             <div className="w-3/5 p-6">
                 <h2 className="text-lg font-medium mb-4">Shipping Details</h2>
-                <CheckoutForm />
+                <CheckoutForm products={products} totalPrice={totalPrice} customer={customerData} />
             </div>
         </div>
     );

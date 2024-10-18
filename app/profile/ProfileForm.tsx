@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast"; // Import the toast function
 import {
   Form,
@@ -13,8 +13,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from 'lucide-react'; // Ensure you have lucide-react installed
 
 // Define the validation schema
@@ -31,31 +31,42 @@ const formSchema = z.object({
   Zipcode: z.string().min(1, { message: "Zip code is required." }),
 });
 
-export function ProfileForm() {
+interface Customer {
+  Customer_ID: bigint;        // Unique customer identifier
+  is_Guest: boolean;          // True if the customer is a guest, false otherwise
+  Password: string;           // Customer's password
+  First_Name: string;         // Customer's first name
+  Last_Name: string;          // Customer's last name
+  Email: string;              // Customer's email address
+  Telephone: string;          // Customer's telephone number
+  House_No: string;           // Customer's house number
+  Address_Line1: string;      // First line of the customer's address
+  Address_Line2?: string;     // Second line of the customer's address (optional)
+  City: string;               // Customer's city
+  Zipcode: string;            // Customer's postal/zip code
+}
+
+interface ProfileFormProps {
+  customer: Customer | null; // Accept customer data as a prop
+}
+
+export function ProfileForm({ customer }: ProfileFormProps) {
   const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      First_Name: "",
-      Last_Name: "",
-      Email: "",
-      Password: "12345678",
-      Telephone: "",
-      House_No: "",
-      Address_Line1: "",
-      Address_Line2: "",
-      City: "",
-      Zipcode: "",
+      First_Name: customer?.First_Name || "",
+      Last_Name: customer?.Last_Name || "",
+      Email: customer?.Email || "",
+      Password: "12345678", // Consider removing default password in production
+      Telephone: customer?.Telephone || "",
+      House_No: customer?.House_No || "",
+      Address_Line1: customer?.Address_Line1 || "",
+      Address_Line2: customer?.Address_Line2 || "",
+      City: customer?.City || "",
+      Zipcode: customer?.Zipcode || "",
     },
   });
-
-  // Use useEffect to check for the reload state and show the toast
-  useEffect(() => {
-    if (localStorage.getItem("formSubmitted") === "true") {
-      toast.success("Form submitted successfully!", { duration: 2000 });
-      localStorage.removeItem("formSubmitted"); // Remove the flag after showing the toast
-    }
-  }, []);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);

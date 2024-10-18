@@ -48,21 +48,29 @@ const formSchema = z.object({
   CVV: z.string().optional(),
 });
 
-export function CheckoutForm() {
+// Define the props type
+interface CheckoutFormProps {
+  products: any[]; // Replace 'any' with your product type if needed
+  totalPrice: number;
+  customer: any; // Replace 'any' with your customer type if needed
+}
+
+export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
+  console.log(products, totalPrice, customer);
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      First_Name: "",
-      Last_Name: "",
-      Email: "",
-      Telephone: "",
-      House_No: "",
-      Address_Line1: "",
-      Address_Line2: "",
-      City: "",
-      Zipcode: "",
+      First_Name: customer?.First_Name || "",
+      Last_Name: customer?.Last_Name || "",
+      Email: customer?.Email || "",
+      Telephone: customer?.Telephone || "",
+      House_No: customer?.House_No || "",
+      Address_Line1: customer?.Address_Line1 || "",
+      Address_Line2: customer?.Address_Line2 || "",
+      City: customer?.City || "",
+      Zipcode: customer?.Zipcode || "",
       Province: "",
       Payment_Type: "Cash on Delivery",
       Card_Number: "",
@@ -171,6 +179,19 @@ export function CheckoutForm() {
 
           <FormField
             control={form.control}
+            name="Address_Line2"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address Line 2 (optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your address line 2" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="City"
             render={({ field }) => (
               <FormItem>
@@ -188,9 +209,9 @@ export function CheckoutForm() {
             name="Zipcode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Zip Code</FormLabel>
+                <FormLabel>Zipcode</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your zip code" {...field} />
+                  <Input placeholder="Enter your zipcode" {...field} />
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>

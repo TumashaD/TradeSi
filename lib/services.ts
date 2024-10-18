@@ -1,8 +1,11 @@
+'use server';
+
 import { verifySession } from "@/lib/dal";
 import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
 import pool from "@/lib/db";  // Import your database connection
+import { RowDataPacket } from "mysql2";
 const API_URL = process.env.API_URL;
 
 
@@ -131,4 +134,34 @@ export async function getCustomers(): Promise<{ First_Name: string, Last_Name: s
         return [];
     }
 }
+
+export interface Customer extends RowDataPacket {
+    Customer_ID: bigint;        // Unique customer identifier
+    is_Guest: boolean;          // True if the customer is a guest, false otherwise
+    Password: string;           // Customer's password
+    First_Name: string;         // Customer's first name
+    Last_Name: string;          // Customer's last name
+    Email: string;              // Customer's email address
+    Telephone: string;          // Customer's telephone number
+    House_No: string;           // Customer's house number
+    Address_Line1: string;      // First line of the customer's address
+    Address_Line2?: string;     // Second line of the customer's address (optional)
+    City: string;               // Customer's city
+    Zipcode: string;            // Customer's postal/zip code
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+    try {
+        const connection = await pool();  // Await the connection to the database
+        const [rows] = await connection.query<Customer[]>(
+            'SELECT * FROM Customer WHERE Customer_ID = ?', 
+            [id]
+        );
+
+        return rows[0] || null;  // Return the first matching customer or null if not found
+    } catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return null;
+    }
+};
 
