@@ -44,17 +44,19 @@ export default async function UserAvatarOptions() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
+            <DropdownMenuLabel>
+                <Link href="/profile" className="text-blue-500 hover:underline">
                     {capitalizeFirstCharOfEveryWord(
                         user?.name?.firstname + " " + user?.name?.lastname,
                     )}
-                </DropdownMenuLabel>
+                </Link>
+            </DropdownMenuLabel>
                 {user?.isAdmin && (
                     <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer">
                             <Link href={"/admin"} passHref>
-                                Dashboard
+                                Admin Dashboard
                             </Link>
                         </DropdownMenuItem>
                     </>
