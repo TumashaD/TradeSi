@@ -165,12 +165,12 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
     }
 };
 
-interface ProductData extends RowDataPacket {
+export interface ProductData extends RowDataPacket {
     Item_ID: bigint;
     Field: string;
     Price: number;
     SKU: number;
-    Qunatity: number;
+    Quantity: number;
     Image: string;
     Variant_ID: bigint | null;
     Variant_Type: string | null;
@@ -187,8 +187,8 @@ export async function fetchProductData(id: string): Promise<ProductData[] | null
             'CALL FetchProductData(?)',
             [id]
         );
-
-        return rows as ProductData[];
+        const data = JSON.parse(JSON.stringify(rows));
+        return data;
     } catch (error) {
         console.error('Failed to fetch product data:', error);
         return [];
