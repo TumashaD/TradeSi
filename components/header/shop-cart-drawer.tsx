@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
     Sheet,
@@ -17,8 +18,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Loader } from "lucide-react";
+import router from "next/router";
 
 export function ShopCartDrawer() {
+    const router = useRouter();
     const [isLoading,setIsLoading] = useState(false);
     const products = useStore().products;
     const removeProduct = useStore().removeProduct;
@@ -32,12 +35,13 @@ export function ShopCartDrawer() {
 
     const onCheckout = () => {
         setIsLoading(true);
-        console.log("Checkout successful");
+        // Store products in local storage
+        localStorage.setItem("cartProducts", JSON.stringify(products));
+        localStorage.setItem("totalPrice", calculateTotalPrice().toFixed(2));
         setTimeout(() => {
             setIsLoading(false);
-            toast.error("Unfortunately, we are unable to process your payment at the moment. Please try again later.");
-        }
-        , 2000);
+            router.push(`/checkout`);
+        }, 2000);
     };
 
     return (
