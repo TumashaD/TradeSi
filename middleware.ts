@@ -1,18 +1,11 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-//? this is a middleware function that will run on every request
-//? it will check if the user is authenticated or not (authorization)
-//? and redirect them to the appropriate page
+// Admin role: represents the admin user id in the fakestoreapi db
+const ADMIN_ROLE = 2;
 
-
-
-// Admin role : represents the admin user id in the fakestoreapi db
-const ADMIN_ROLE: number = 2;
-
-
-// allowedOrigins for CORS
+// Allowed origins for CORS
 const allowedOrigins = [process.env.SITE_URL];
 
 // CORS options
@@ -23,11 +16,11 @@ const corsOptions = {
 
 // 1. Specify protected and public routes
 const protectedRoutes = [
-    "/",
+    "/signup",
     "/products",
-    "/products/:path*", //  target all paths under /products
+    "/products/:path*", // target all paths under /products
     "/admin",
-    "/admin/:path*", //  target all paths under /admin
+    "/admin/:path*", // target all paths under /admin
 ];
 const adminRoutes = ["/admin", "/admin/:path*"];
 const publicRoutes = ["/login", "/signup"];
@@ -68,9 +61,14 @@ export default async function middleware(req: NextRequest) {
     
     // 3. Decrypt the token from the cookie
     const token = cookies().get("token")?.value;
-    let decoded: any = null;
+    let decoded: JwtPayload | null = null;
     if (token) {
-        decoded = jwt.decode(token);
+        decoded = jwt.decode(token) as JwtPayload; // Assert the type to JwtPayload
+    }
+
+    // 4. Allow access to the home page without login
+    if (path === "/") {
+        return NextResponse.next();
     }
 
     // 5. Redirect to /login if the user is not authenticated
@@ -78,10 +76,10 @@ export default async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
     }
 
-    // 6. Redirect to home page if the user is authenticated
-    if (isPublicRoute && decoded?.user) {
-        return NextResponse.redirect(new URL("/", req.nextUrl));
-    }
+    //6. Redirect to home page if the user is authenticated
+    // if (isPublicRoute && decoded?.user) {
+    //     return NextResponse.redirect(new URL("/", req.nextUrl));
+    // }
 
     // 7. Redirect to home page if the user is not an admin
     const userId = Number(decoded?.sub);
