@@ -11,44 +11,11 @@ import { cn } from "@/lib/utils"
 import { Toast } from "@/components/ui/toast"
 import { useToast } from "@/components/ui/use-toast"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import {fetchProductData} from "../../../../lib/services"
 
-// Mock product data
-const productData = {
-  name: "SuperTech Pro Laptop",
-  basePrice: 999,
-  description: "Experience unparalleled performance with the SuperTech Pro Laptop. Designed for professionals and power users, this laptop combines cutting-edge technology with sleek design.",
-  weight: "1.8 kg",
-  colors: ["Silver", "Space Gray", "Gold"],
-  storage: ["256GB", "512GB", "1TB"],
-  ram: ["8GB", "16GB", "32GB"],
-  variants: [
-    { color: "Silver", storage: "256GB", ram: "8GB", price: 999, stock: 10 },
-    { color: "Silver", storage: "512GB", ram: "16GB", price: 1299, stock: 5 },
-    { color: "Space Gray", storage: "512GB", ram: "16GB", price: 1299, stock: 8 },
-    { color: "Gold", storage: "1TB", ram: "32GB", price: 1799, stock: 0 },
-  ]
-}
 
-// Mock similar products data
-const similarProducts = [
-  { id: 1, name: "UltraBook Slim", price: 899, image: "/placeholder.svg?height=200&width=200" },
-  { id: 2, name: "PowerPro Laptop", price: 1199, image: "/placeholder.svg?height=200&width=200" },
-  { id: 3, name: "TechMaster Notebook", price: 1099, image: "/placeholder.svg?height=200&width=200" },
-  { id: 4, name: "Elite Book Pro", price: 1399, image: "/placeholder.svg?height=200&width=200" },
-  { id: 5, name: "Innovator Laptop", price: 1299, image: "/placeholder.svg?height=200&width=200" },
-]
 
-// Mock API call
-const fetchProductVariant = (color: string, storage: string, ram: string) => {
-  return new Promise<{ price: number; stock: number }>((resolve) => {
-    setTimeout(() => {
-      const variant = productData.variants.find(
-        v => v.color === color && v.storage === storage && v.ram === ram
-      )
-      resolve(variant ? { price: variant.price, stock: variant.stock } : { price: 0, stock: 0 })
-    }, 300) // Simulate network delay
-  })
-}
+
 
 export default function ProductPage() {
   const [color, setColor] = useState(productData.colors[0])

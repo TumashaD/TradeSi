@@ -165,3 +165,33 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
     }
 };
 
+interface ProductData extends RowDataPacket {
+    Item_ID: bigint;
+    Field: string;
+    Price: number;
+    SKU: number;
+    Qunatity: number;
+    Image: string;
+    Variant_ID: bigint | null;
+    Variant_Type: string | null;
+    Variant_Name: string | null;
+    Attribute_ID: bigint | null;
+    Attribute_Type: string | null;
+    Attribute_Name: string | null;
+}
+
+export async function fetchProductData(id: string): Promise<ProductData[] | null> {
+    try {
+        const connection = await pool();
+        const [rows] = await connection.query<ProductData[]>(
+            'CALL FetchProductData(?)',
+            [id]
+        );
+
+        return rows as ProductData[];
+    } catch (error) {
+        console.error('Failed to fetch product data:', error);
+        return [];
+    }
+}
+
