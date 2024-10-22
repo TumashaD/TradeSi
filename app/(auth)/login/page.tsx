@@ -7,7 +7,7 @@ import { login } from "@/lib/actions"; // Assuming this is for usual user login
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Use router to navigate programmatically
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 
 // Define hardcoded admin credentials
@@ -17,12 +17,16 @@ const adminCredentials = [
 ];
 
 export default function LogInPage() {
-    const { pending } = useFormStatus();
+    const [pending, setPending] = useState(false);
     const router = useRouter(); // Get router instance
 
-    const handleLogin = async (formData: FormData) => {
+    const handleLogin = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const formData = new FormData(event.target as HTMLFormElement);
         const enteredUsername = formData.get("username")?.toString() || "";
         const enteredPassword = formData.get("password")?.toString() || "";
+
+        setPending(true); // Show loading state
 
         // Check if credentials match admin credentials
         const isAdmin = adminCredentials.some(
@@ -30,17 +34,23 @@ export default function LogInPage() {
         );
 
         if (isAdmin) {
-            // Redirect to admin dashboard
-            router.push("/admin");
+            sessionStorage.setItem("isAdmin", "true"); // Store admin flag in session storage
+            toast.success("Logged in as Admin");
+            router.push("/admin"); // Redirect to homepage (admin can access dashboard from there)
             return;
         }
 
         try {
             // Usual login flow for non-admin users
             await login(formData); // Assuming this logs in the user
+            sessionStorage.setItem("isAdmin", "false"); // Store user flag in session storage
+            toast.success("Logged in successfully");
+            router.push("/"); // Redirect to homepage
         } catch (error) {
-            console.log(error);
-            toast.error("Something went wrong.");
+            console.error(error);
+            toast.error("Invalid username or password.");
+        } finally {
+            setPending(false); // Remove loading state
         }
     };
 
@@ -57,7 +67,7 @@ export default function LogInPage() {
                     </div>
                     <h2 className="text-2xl font-semibold text-gray-800">Login</h2>
                     <form
-                        action={handleLogin}
+                        onSubmit={handleLogin}
                         className="mt-4 space-y-4"
                     >
                         <div>
@@ -67,9 +77,8 @@ export default function LogInPage() {
                             <Input
                                 id="username"
                                 name="username"
-                                placeholder="username"
+                                placeholder="Enter your username"
                                 autoComplete="username"
-                                defaultValue={"mor_2314"} // Default username
                                 required
                                 disabled={pending}
                                 className="w-full px-4 py-2 mt-2 border rounded-md focus:ring-1 focus:ring-primarycolour focus:outline-none"
@@ -83,8 +92,7 @@ export default function LogInPage() {
                                 id="password"
                                 name="password"
                                 type="password"
-                                placeholder="****"
-                                defaultValue={"83r5^_"} // Default password
+                                placeholder="Enter your password"
                                 required
                                 disabled={pending}
                                 className="w-full px-4 py-2 mt-2 border rounded-md focus:ring-1 focus:ring-primarycolour focus:outline-none"
@@ -95,7 +103,7 @@ export default function LogInPage() {
                             type="submit"
                             disabled={pending}
                         >
-                            SIGN IN
+                            {pending ? "Signing In..." : "SIGN IN"}
                         </Button>
                     </form>
                 </div>

@@ -33,7 +33,12 @@ const SignUp = () => {
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text"
-                  placeholder="Name"
+                  placeholder="First Name"
+                  className="border rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name"
                   className="border rounded-md p-2 w-full"
                 />
                 <input
@@ -43,12 +48,7 @@ const SignUp = () => {
                 />
                 <input
                   type="text"
-                  placeholder="BirthDay MM/DD/YY"
-                  className="border rounded-md p-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Gender"
+                  placeholder="Telephone Number"
                   className="border rounded-md p-2 w-full"
                 />
               </div>
@@ -60,22 +60,27 @@ const SignUp = () => {
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text"
-                  placeholder="Number"
+                  placeholder="House Number"
                   className="border rounded-md p-2 w-full"
                 />
                 <input
                   type="text"
-                  placeholder="Street"
+                  placeholder="Address Line 1"
                   className="border rounded-md p-2 w-full"
                 />
                 <input
                   type="text"
-                  placeholder="Town"
+                  placeholder="Address Line 2"
                   className="border rounded-md p-2 w-full"
                 />
                 <input
                   type="text"
-                  placeholder="District"
+                  placeholder="City"
+                  className="border rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="Zipcode"
                   className="border rounded-md p-2 w-full"
                 />
               </div>

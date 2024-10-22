@@ -76,7 +76,7 @@ export default async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
     }
 
-    // 6. Redirect to home page if the user is authenticated
+    //6. Redirect to home page if the user is authenticated
     // if (isPublicRoute && decoded?.user) {
     //     return NextResponse.redirect(new URL("/", req.nextUrl));
     // }
