@@ -25,11 +25,9 @@ export function MainNav({
             active: pathname === `/admin/products`,
         },
         {
-            href: ``,
+            href: `/admin/orders`,
             label: "Orders",
             active: pathname === `/admin/orders`,
-            onClick: () =>
-                toast("🛠 Orders page is currently under development."),
         },
         {
             href: ``,

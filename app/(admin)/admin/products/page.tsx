@@ -1,8 +1,3 @@
-
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Metadata } from "next";
-
 import { getProducts } from "@/lib/services";
 import { Product, ProductPageQueryParams } from "@/types/product";
 // import ProductCard from "./product-card";

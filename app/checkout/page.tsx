@@ -41,6 +41,11 @@ const CheckoutPage = () => {
 
     return (
         <div className="flex h-screen">
+            {/* Address Form Section */}
+            <div className="w-3/5 p-6">
+                <h2 className="text-lg font-medium mb-4">Shipping Details</h2>
+                <CheckoutForm products={products} totalPrice={totalPrice} customer={customerData} />
+            </div>
             {/* Cart Section */}
             <div className="w-3/5 p-1 mr-10 mt-10">
                 <div className="flow-root">
@@ -77,11 +82,6 @@ const CheckoutPage = () => {
                 </div>
             </div>
 
-            {/* Address Form Section */}
-            <div className="w-3/5 p-6">
-                <h2 className="text-lg font-medium mb-4">Shipping Details</h2>
-                <CheckoutForm products={products} totalPrice={totalPrice} customer={customerData} />
-            </div>
         </div>
     );
 };
