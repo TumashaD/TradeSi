@@ -3,18 +3,41 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/lib/actions";
+import { login } from "@/lib/actions"; // Assuming this is for usual user login
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Use router to navigate programmatically
 import { useFormStatus } from "react-dom";
 import { toast } from "react-hot-toast";
 
+// Define hardcoded admin credentials
+const adminCredentials = [
+  { username: "admin1", password: "admin123" },
+  { username: "admin2", password: "admin456" },
+];
+
 export default function LogInPage() {
     const { pending } = useFormStatus();
+    const router = useRouter(); // Get router instance
 
     const handleLogin = async (formData: FormData) => {
+        const enteredUsername = formData.get("username")?.toString() || "";
+        const enteredPassword = formData.get("password")?.toString() || "";
+
+        // Check if credentials match admin credentials
+        const isAdmin = adminCredentials.some(
+            (admin) => admin.username === enteredUsername && admin.password === enteredPassword
+        );
+
+        if (isAdmin) {
+            // Redirect to admin dashboard
+            router.push("/admin");
+            return;
+        }
+
         try {
-            await login(formData);
+            // Usual login flow for non-admin users
+            await login(formData); // Assuming this logs in the user
         } catch (error) {
             console.log(error);
             toast.error("Something went wrong.");
@@ -33,7 +56,10 @@ export default function LogInPage() {
                         <span className="text-gray-400 text-sm"> / Login</span>
                     </div>
                     <h2 className="text-2xl font-semibold text-gray-800">Login</h2>
-                    <form action={handleLogin} className="mt-4 space-y-4">
+                    <form
+                        action={handleLogin}
+                        className="mt-4 space-y-4"
+                    >
                         <div>
                             <Label className="block text-gray-600" htmlFor="username">
                                 Username
@@ -72,7 +98,6 @@ export default function LogInPage() {
                             SIGN IN
                         </Button>
                     </form>
-                    
                 </div>
 
                 {/* Right Side - Image and CTA */}
@@ -89,8 +114,7 @@ export default function LogInPage() {
                         <h2 className="text-3xl font-bold">Hello!</h2>
                         <p className="mt-4">Don’t have an account?</p>
                         <Link href="/signup">
-                            <div className="mt-4 inline-block bg-white text-primarycolour py-2 px-6 rounded-full hover:bg-gray-100
-                            ">
+                            <div className="mt-4 inline-block bg-white text-primarycolour py-2 px-6 rounded-full hover:bg-gray-100">
                                 Create an account
                             </div>
                         </Link>
