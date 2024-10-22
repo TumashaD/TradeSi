@@ -48,6 +48,8 @@ const formSchema = z.object({
   CVV: z.string().optional(),
 });
 
+
+
 // Define the props type
 interface CheckoutFormProps {
   products: any[]; // Replace 'any' with your product type if needed
@@ -79,6 +81,28 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
       CVV: "",
     },
   });
+
+  useEffect(() => {
+    if (customer) {
+      form.reset({
+        First_Name: customer?.First_Name || "",
+        Last_Name: customer?.Last_Name || "",
+        Email: customer?.Email || "",
+        Telephone: customer?.Telephone || "",
+        House_No: customer?.House_No || "",
+        Address_Line1: customer?.Address_Line1 || "",
+        Address_Line2: customer?.Address_Line2 || "",
+        City: customer?.City || "",
+        Zipcode: customer?.Zipcode || "",
+        Province: "",
+        Payment_Type: "Cash on Delivery",
+        Card_Number: "",
+        Expiry_Date: "",
+        Name_On_Card: "",
+        CVV: "",
+      });
+    }
+  }, [customer, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);

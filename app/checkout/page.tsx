@@ -18,22 +18,30 @@ const CheckoutPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [totalPrice, setTotalPrice] = useState(0);
     const [customerData, setCustomerData] = useState<any>(null); // Define state for customer data
+    const calculateTotalPrice = (products: Product[]) => {
+        return products.reduce((total, product) => {
+            return total + product.price * product.quantity;
+        }, 0);
+    };
 
     // Retrieve products and customer data from local storage and server
     useEffect(() => {
         const storedProducts = localStorage.getItem("cartProducts");
-        const totalPrice = localStorage.getItem("totalPrice");
-        if (totalPrice) {
-            setTotalPrice(parseFloat(totalPrice));
-        }
+        
+
         if (storedProducts) {
-            setProducts(JSON.parse(storedProducts));
+            const parsedProducts = JSON.parse(storedProducts);
+            setProducts(parsedProducts); // Update products state
+            setTotalPrice(calculateTotalPrice(parsedProducts)); // Update totalPrice based on products
         }
 
         // Fetch customer data (ensure this is asynchronous if necessary)
         const fetchCustomerData = async () => {
             const data = await getCustomerById("1"); // Call your data fetching function
-            setCustomerData(data);
+            if (data) {
+                setCustomerData(data);
+            }
+            
         };
 
         fetchCustomerData();
