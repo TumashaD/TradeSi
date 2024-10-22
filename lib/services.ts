@@ -168,7 +168,7 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 export interface ProductData extends RowDataPacket {
     Item_ID: bigint;
     Field: string;
-    Price: number;
+    Price: string;
     SKU: number;
     Quantity: number;
     Image: string;
@@ -180,7 +180,7 @@ export interface ProductData extends RowDataPacket {
     Attribute_Name: string | null;
 }
 
-export async function fetchProductData(id: string): Promise<ProductData[] | null> {
+export async function fetchProductData(id: string): Promise<ProductData[][] | null> {
     try {
         const connection = await pool();
         const [rows] = await connection.query<ProductData[]>(

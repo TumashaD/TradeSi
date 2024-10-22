@@ -1,30 +1,24 @@
 'use client';
 
-import { useState, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { Toast } from "@/components/ui/toast"
-import { useToast } from "@/components/ui/use-toast"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { fetchProductData, ProductData } from "../../../../lib/services"
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import { fetchProductData, ProductData } from "../../../../lib/services";
 
-// Your ProductPage component
 export default function ProductPage() {
-    const { id } = useParams(); // Extract the productId directly from URL params
+    const { id } = useParams(); // Extract the productId from URL params
     const productId = Array.isArray(id) ? id[0] : id; // Ensure productId is a string
-
-
     const [productData, setProductData] = useState<ProductData[] | null>(null);
-    const [color, setColor] = useState("");
-    const [storage, setStorage] = useState("");
-    const [ram, setRam] = useState("");
-    const [price, setPrice] = useState(0);
+    const [Field,setName] = useState("");
+    const [selectedVariant, setSelectedVariant] = useState("");
+    const [selectedAttribute, setSelectedAttribute] = useState("");
+    const [price, setPrice] = useState("");
     const [stock, setStock] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -32,26 +26,56 @@ export default function ProductPage() {
 
     // Fetch product data when the component mounts or when the product ID changes
     useEffect(() => {
-        console.log("Product ID:", productId);
         if (productId) {
             const fetchData = async () => {
-                console.log("Fetching product data for ID:", productId);
-                const data = await fetchProductData(productId);
-                console.log(data); // Check the returned data
-                if (data) {
-                    setProductData(data);
-                    setPrice(data[0].Price); // Assuming price is available in the first row
-                    setStock(data[0].Quantity); // Assuming quantity is stock
-                    setColor(data[0].Variant_Type || ""); // Set the initial color from the data
-                    setStorage(""); // Initialize storage options
-                    setRam(""); // Initialize RAM options
+                setLoading(true);
+                try {
+                    const Productdata = await fetchProductData(productId);
+                    if (Productdata && Productdata.length > 0) {
+                        setProductData(Productdata[0]); // This sets the inner array (first element) to productData
+                        console.log(Productdata);
+                        // Set default values from the first row of the data
+                        const defaultRow = Productdata[0]?.[0]; // Access the first object in the nested array
+                        if (defaultRow) {
+                            setSelectedVariant(defaultRow.Variant_Name || ""); // Fallback to an empty string if null
+                            setSelectedAttribute(defaultRow.Attribute_Name || ""); // Fallback to an empty string if null
+                            setPrice(defaultRow.Price || ""); // Fallback to an empty string if null
+                            setStock(defaultRow.Quantity || 0); // Fallback to 0 if null
+                            setName(defaultRow.Field || "");
+                        }
+                        
+                    }
+                } catch (error) {
+                    console.error("Error fetching product data:", error);
+                } finally {
+                    setLoading(false);
                 }
-                setLoading(false);
             };
             fetchData();
         }
     }, [productId]);
 
+    // Handle variant selection change
+    const handleVariantChange = (variant: string) => {
+        const selectedData = productData?.find(data => data.Variant_Name === variant);
+        if (selectedData) {
+            setSelectedVariant(variant);
+            setPrice(selectedData.Price);
+            setStock(selectedData.Quantity);
+        }
+    };
+
+    // Handle attribute selection change
+    const handleAttributeChange = (attribute: string) => {
+        const selectedData = productData?.find(data => data.Attribute_Name === attribute);
+        if (selectedData) {
+            setSelectedAttribute(attribute);
+            setPrice(selectedData.Price);
+            setStock(selectedData.Quantity);
+        }
+    };
+
+    // Handle adding to cart
     const handleAddToCart = () => {
         toast({
             title: "Added to cart",
@@ -60,73 +84,66 @@ export default function ProductPage() {
     };
 
     if (loading || !productData) {
-        return <Skeleton className="h-64 w-full" />; // Loading state if data isn't ready
+        return (
+            <div className="container mx-auto px-4 py-8">
+                {/* Loading Skeleton */}
+                <SkeletonLoading />
+            </div>
+        );
     }
 
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 mb-12">
+                {/* Product Image and Description */}
                 <div className="space-y-4">
                     <img
-                        src={productData[0].Image || "/placeholder.svg?height=400&width=400"}
+                        src={productData[0].Image || "/placeholder.svg"}
                         alt={productData[0].Field}
                         className="w-full h-auto rounded-lg shadow-lg"
                     />
                     <div className="bg-muted p-4 rounded-lg">
                         <h2 className="text-lg font-semibold mb-2">Description</h2>
                         <p>{productData[0].Field}</p>
-                        <p className="mt-2"><strong>Weight:</strong> {productData[0].Price}kg</p>
                     </div>
                 </div>
 
+                {/* Product Details */}
                 <div className="space-y-6">
                     <h1 className="text-3xl font-bold">{productData[0].Field}</h1>
-                    <p className="text-2xl font-semibold">${}</p>
+                    <p className="text-2xl font-semibold">${price}</p>
 
-                    <div>
-                        <h2 className="text-lg font-semibold mb-2">Color</h2>
-                        <RadioGroup value={color} onValueChange={setColor} className="flex space-x-2">
-                            <div key={color} className="flex items-center space-x-2">
-                                <RadioGroupItem value={color} id={`color-${color}`} />
-                                <Label
-                                    htmlFor={`color-${color}`}
-                                    className={cn(
-                                        "px-3 py-1 rounded-full cursor-pointer transition-colors",
-                                        color === color ? "bg-primary text-primary-foreground" : "bg-secondary"
-                                    )}
-                                >
-                                    {color}
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-
+                    {/* Variant Selection (Storage, RAM, etc.) */}
                     <div>
                         <h2 className="text-lg font-semibold mb-2">Storage</h2>
-                        <Select value={storage} onValueChange={setStorage}>
+                        <Select value={selectedVariant} onValueChange={handleVariantChange}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select storage" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="64GB">64GB</SelectItem>
-                                <SelectItem value="128GB">128GB</SelectItem>
+                                {productData && productData.map((row) => (
+                                    row.Variant_Name && <SelectItem key={row.Variant_ID} value={row.Variant_Name}>{row.Variant_Name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
 
+                    {/* Attribute Selection (Battery, Color, etc.) */}
                     <div>
-                        <h2 className="text-lg font-semibold mb-2">RAM</h2>
-                        <Select value={ram} onValueChange={setRam}>
+                        <h2 className="text-lg font-semibold mb-2">Battery</h2>
+                        <Select value={selectedAttribute} onValueChange={handleAttributeChange}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select RAM" />
+                                <SelectValue placeholder="Select battery" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="4GB">4GB</SelectItem>
-                                <SelectItem value="8GB">8GB</SelectItem>
+                                {productData && productData.map((row) => (
+                                    row.Attribute_Name && <SelectItem key={row.Attribute_ID} value={row.Attribute_Name}>{row.Attribute_Name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
 
+                    {/* Quantity */}
                     <div>
                         <h2 className="text-lg font-semibold mb-2">Quantity</h2>
                         <Input
@@ -139,6 +156,7 @@ export default function ProductPage() {
                         />
                     </div>
 
+                    {/* Stock Status */}
                     <div className="text-sm">
                         {stock > 0 ? (
                             <span className="text-green-600">In stock: {stock} available</span>
@@ -147,6 +165,7 @@ export default function ProductPage() {
                         )}
                     </div>
 
+                    {/* Add to Cart Button */}
                     <Button
                         onClick={handleAddToCart}
                         disabled={stock === 0}
@@ -155,6 +174,29 @@ export default function ProductPage() {
                         {stock === 0 ? "Out of Stock" : "Add to Cart"}
                     </Button>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+// Loading skeleton component
+function SkeletonLoading() {
+    return (
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="space-y-4">
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-6 w-full" />
+            </div>
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-6 w-1/4" />
+                <Skeleton className="h-12 w-full" />
             </div>
         </div>
     );
