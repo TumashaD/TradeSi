@@ -165,3 +165,88 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
     }
 };
 
+
+
+/**
+ * Register a new user with username, email, and password.
+ * @param {string} username - The username of the user.
+ * @param {string} email - The email of the user.
+ * @param {string} password - The plain text password of the user.
+ * @param {string} firstName - The first name of the user.
+ * @param {string} lastName - The last name of the user.
+ * @param {string} telephone - The telephone number of the user.
+ * @param {string} houseNo - The house number of the user.
+ * @param {string} addressLine1 - The first line of the address.
+ * @param {string} addressLine2 - The second line of the address.
+ * @param {string} city - The city of the user.
+ * @returns {Promise<boolean>} A promise that resolves to true if registration is successful, otherwise false.
+ */
+export async function registerUser(
+    username: string,
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    telephone: string,
+    houseNo: string,
+    addressLine1: string,
+    addressLine2: string,
+    city: string
+): Promise<boolean> {
+    const query = `
+        INSERT INTO Customers (Username, First_Name, Last_Name, Email, Telephone, House_No, Address_Line1, Address_Line2, City, Password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    try {
+        const connection = await pool();
+
+        // Hash the password before storing it
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+
+        // Insert the user into the database
+        await connection.query(query, [
+            username,
+            firstName,
+            lastName,
+            email,
+            telephone,
+            houseNo,
+            addressLine1,
+            addressLine2,
+            city,
+            hashedPassword
+        ]);
+
+        return true;
+    } catch (error) {
+        console.error('Failed to register user:', error);
+        return false;
+    }
+}
+
+
+
+export async function loginUser(username: string, password: string): Promise<boolean> {
+    const query = `SELECT password FROM Customers WHERE Email = ?`;
+
+    try {
+        const connection = await pool();
+        const [rows]: [RowDataPacket[], unknown] = await connection.query(query, [username]); // Destructure with types
+
+        if (rows.length === 0) {
+            return false; // User not found
+        }
+
+        const storedHashedPassword = rows[0].password;
+
+        // Compare the entered password with the stored hashed password
+        const isMatch = await bcrypt.compare(password, storedHashedPassword);
+
+        return isMatch; // Return true if passwords match, false otherwise
+    } catch (error) {
+        console.error('Failed to login user:', error);
+        return false;
+    }
+}
+
