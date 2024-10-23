@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from 'lucide-react'; // Ensure you have lucide-react installed
 import { updateCustomer } from '../../lib/services'; // Import the updateCustomer function
+import { useRouter } from "next/navigation";
 
 // Define the validation schema
 const formSchema = z.object({
@@ -52,6 +53,7 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ customer }: ProfileFormProps) {
+  const router = useRouter(); // Use Next.js router to navigate
   const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,28 +71,37 @@ export function ProfileForm({ customer }: ProfileFormProps) {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    updateCustomer(
-      customer?.Customer_ID,  // Assuming you have customerId in the values object
-      customer?.is_Guest,
-      values.Password, 
-      values.First_Name, 
-      values.Last_Name, 
-      values.Email, 
-      values.Telephone, 
-      values.House_No, 
-      values.Address_Line1, 
-      values.Address_Line2="", 
-      values.City, 
-      values.Zipcode
-    );; 
-    // Set a flag in localStorage to track submission
-    localStorage.setItem("formSubmitted", "true");
+  
 
-    // Refresh the page after setting the flag
-    window.location.reload();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      await updateCustomer(
+        customer?.Customer_ID,
+        customer?.is_Guest,
+        values.Password, 
+        values.First_Name, 
+        values.Last_Name, 
+        values.Email, 
+        values.Telephone, 
+        values.House_No, 
+        values.Address_Line1, 
+        values.Address_Line2 || "", 
+        values.City, 
+        values.Zipcode
+      );
+
+      // Show success toast
+      toast.success("Profile updated successfully!");
+
+      // Redirect to home page after successful submission
+      router.push("/");
+
+    } catch (error) {
+      console.error("Failed to update customer:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
   };
+
 
   return (
     <Form {...form}>

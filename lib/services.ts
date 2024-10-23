@@ -217,7 +217,7 @@ export async function updateCustomer(
         const connection = await pool();
         await connection.query(sql, [
             customerId,
-            isGuest || true,
+            isGuest,
             password,
             firstName,
             lastName,
