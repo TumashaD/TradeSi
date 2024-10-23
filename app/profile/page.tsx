@@ -9,6 +9,9 @@ const ProfilePage = async () => {
   // Fetch customer data on the server
   const customerData = await getCustomerById("1"); // Call your data fetching function
 
+  if (!customerData) {
+    return <div>Loading...</div>; // Or handle the case when customer is null
+  }
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Top bar container with BackButton on the left and Profile text on the right */}
@@ -19,7 +22,7 @@ const ProfilePage = async () => {
 
       <Toaster /> {/* Toaster that shows notifications */}
       
-      {/* Main content container */}
+      {/* Main content container */} 
       <div className="flex-grow px-8">
         {/* Pass customer data to the ProfileForm component */}
         <ProfileForm customer={customerData} />

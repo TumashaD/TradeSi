@@ -195,3 +195,43 @@ export async function fetchProductData(id: string): Promise<ProductData[][] | nu
     }
 }
 
+export async function updateCustomer(
+    customerId: bigint,
+    isGuest: boolean,
+    password: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    telephone: string,
+    houseNo: string,
+    addressLine1: string,
+    addressLine2: string,
+    city: string,
+    zipcode: string
+  ): Promise<void> {
+    const sql = `
+      CALL UpdateCustomer(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+  
+    try {
+        const connection = await pool();
+        await connection.query(sql, [
+            customerId,
+            isGuest || true,
+            password,
+            firstName,
+            lastName,
+            email,
+            telephone,
+            houseNo,
+            addressLine1,
+            addressLine2 || "",
+            city,
+            zipcode
+        ]);
+    } catch (error) {
+      console.error('Error calling UpdateCustomer procedure:', error);
+      throw error;
+    }
+  }
+

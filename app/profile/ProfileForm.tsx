@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { bigint, z } from "zod";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast"; // Import the toast function
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from 'lucide-react'; // Ensure you have lucide-react installed
+import { updateCustomer } from '../../lib/services'; // Import the updateCustomer function
 
 // Define the validation schema
 const formSchema = z.object({
@@ -47,7 +48,7 @@ interface Customer {
 }
 
 interface ProfileFormProps {
-  customer: Customer | null; // Accept customer data as a prop
+  customer: Customer; // Accept customer data as a prop
 }
 
 export function ProfileForm({ customer }: ProfileFormProps) {
@@ -70,7 +71,20 @@ export function ProfileForm({ customer }: ProfileFormProps) {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
-    
+    updateCustomer(
+      customer?.Customer_ID,  // Assuming you have customerId in the values object
+      customer?.is_Guest,
+      values.Password, 
+      values.First_Name, 
+      values.Last_Name, 
+      values.Email, 
+      values.Telephone, 
+      values.House_No, 
+      values.Address_Line1, 
+      values.Address_Line2="", 
+      values.City, 
+      values.Zipcode
+    );; 
     // Set a flag in localStorage to track submission
     localStorage.setItem("formSubmitted", "true");
 
