@@ -27,14 +27,14 @@ export default async function UserAvatarOptions() {
                     size="icon"
                     className={clsx(
                         "overflow-hidden rounded-full ",
-                        user?.isAdmin && "border-yellow-400",
+                        user?.isAdmin && "border-yellow-400", // Highlight the admin border
                     )}
                 >
                     <Image
                         src={
                             user?.isAdmin
-                                ? "/admin-avatar.png"
-                                : "https://i.imgur.com/LFpAx5i.png"
+                                ? "/admin-avatar.png" // Admin avatar
+                                : "https://i.imgur.com/LFpAx5i.png" // Usual user avatar
                         }
                         width={36}
                         height={36}
@@ -49,18 +49,20 @@ export default async function UserAvatarOptions() {
                     {capitalizeFirstCharOfEveryWord(
                         user?.name?.firstname + " " + user?.name?.lastname,
                     )}
-                </Link>
-            </DropdownMenuLabel>
+                </DropdownMenuLabel>
+
+                {/* Only render the dashboard link for admins */}
                 {user?.isAdmin && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer">
-                            <Link href={"/admin"} passHref>
-                                Admin Dashboard
+                        <DropdownMenuItem>
+                            <Link href="/admin" passHref>
+                                Dashboard
                             </Link>
                         </DropdownMenuItem>
                     </>
                 )}
+
                 <DropdownMenuSeparator />
                 <LogoutButton />
             </DropdownMenuContent>

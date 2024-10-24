@@ -27,14 +27,14 @@ export default function HeroSection() {
 
                 <div className="absolute flex h-full w-full flex-col items-center justify-center gap-4 ">
                     <h1 className=" animate-text bg-gradient-to-r from-neutral-300 to-stone-400 bg-clip-text  text-3xl font-black text-transparent dark:bg-gradient-to-r dark:from-blue-800 dark:to-indigo-900 md:text-7xl lg:text-9xl">
-                        Spectrum Store
+                        TradeSi
                     </h1>
 
                     <h2
                         className="text- rounded-sm px-8 py-2 text-base  font-bold lg:px-24 lg:text-3xl"
                         style={{ color: "rgb(248, 250, 252)" }}
                     >
-                        Your One-Stop Shop
+                       Explore Best Products
                     </h2>
                     <Link
                         href="/products"
