@@ -38,15 +38,6 @@ import { getTotalCustomers, getTotalOrders, getAvgOrderValue, getCustomerOrderRe
 import SummaryCard from "../../summaryCard";
 import type { CustomerOrderReport} from "@/lib/types";
 
-const generateInitialMetrics = () => {
-    return {
-        totalCustomers: 1234,
-        totalOrders: 5678,
-        averageOrderValue: 156,
-        repeatPurchaseRate: 65,
-    };
-};
-
 const CustomerOrderReport = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [timeFrame, setTimeFrame] = useState("30days");
@@ -263,15 +254,13 @@ const CustomerOrderReport = () => {
                     </Table>
                 </CardContent>
             </Card>
-
-            {/* Order Details Modal
             {selectedCustomer && (
                 <OrderDetailsModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    customer={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.Customer_ID, name: selectedCustomer.Name } : null}
+                    customer={selectedCustomer ? { id: selectedCustomer.Customer_ID.toString(), name: selectedCustomer.Name } : { id: "0", name: "" }}
                 />
-            )} */}
+            )}
         </div>
     );
 };

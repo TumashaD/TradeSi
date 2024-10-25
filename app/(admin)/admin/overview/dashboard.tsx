@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import {
     Select,
@@ -8,11 +8,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { generateQuarterlySales } from "@/lib/services";
+import { generateQuarterlySales, getTotalRevenue, getTotalCustomers, getTotalOrders, getQuarterlySales } from "@/lib/services";
 import SummaryCard from "../../summaryCard";
 import ChartBar from "../../barChart";
 import ChartLine from "../../lineChart";
 import { DollarSign, ShoppingBag, User, Users } from "lucide-react";
+import { set } from "zod";
+import { QuarterlySales } from "@/lib/types";
 
 interface DashboardClientProps {
     initialData: {
@@ -24,19 +26,40 @@ interface DashboardClientProps {
 }
 
 const DashboardClient = ({ initialData }: DashboardClientProps) => {
-    const [selectedYear, setSelectedYear] = useState("2024");
-    const [quarterlySales, setQuarterlySales] = useState(
-        initialData.initialQuarterlySales,
-    );
+    const [selectedYear, setSelectedYear] = useState(2024);
+    const [quarterlySales, setQuarterlySales] = useState<QuarterlySales[]>([]);
     const [topProducts] = useState(initialData.initialTopProducts);
     const [categoryData] = useState(initialData.initialCategoryData);
     const [productInterest] = useState(initialData.initialProductInterest);
+    const [totalCustomers, setTotalCustomers] = useState(0);
+    const [totalOrders, setTotalOrders] = useState(0);
+    const [totalRevenue, setTotalRevenue] = useState(0);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [totalCustomers,totalOrders,totalRevenue,quarterlySales] = await Promise.all([
+                    getTotalCustomers(),
+                    getTotalOrders(),
+                    getTotalRevenue(),
+                    getQuarterlySales(selectedYear),
+                ]);
+                setTotalCustomers(totalCustomers || 0);
+                setTotalOrders(totalOrders || 0);
+                setTotalRevenue(totalRevenue || 0);
+                setQuarterlySales(quarterlySales || []);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+        fetchData();
+    }, []);
 
     // Only fetch new quarterly sales when year changes
-    const handleYearChange = async (year: string) => {
+    const handleYearChange = async (year: number) => {
         setSelectedYear(year);
-        const newQuarterlySales = await generateQuarterlySales(year);
-        setQuarterlySales(newQuarterlySales);
+        // const newQuarterlySales = await generateQuarterlySales(year);
+        // setQuarterlySales(newQuarterlySales);
     };
 
     return (
@@ -53,8 +76,8 @@ const DashboardClient = ({ initialData }: DashboardClientProps) => {
                     </div>
                     <div className="flex gap-4">
                         <Select
-                            defaultValue={selectedYear}
-                            onValueChange={handleYearChange}
+                            defaultValue={selectedYear.toString()}
+                            onValueChange={(value) => handleYearChange(Number(value))}
                         >
                             <SelectTrigger className="w-32">
                                 <SelectValue />
@@ -73,17 +96,17 @@ const DashboardClient = ({ initialData }: DashboardClientProps) => {
                 <div className="grid gap-4 md:grid-cols-3">
                     <SummaryCard
                         title="Total Revenue"
-                        amount="$234,567"
+                        amount={`$${totalRevenue}`}
                         logo={<DollarSign />}
                     />
                     <SummaryCard
                         title="Total Orders"
-                        amount="1,234"
+                        amount={totalOrders.toString()}
                         logo={<ShoppingBag />}
                     />
                     <SummaryCard
-                        title="Active Customers"
-                        amount="892"
+                        title="Total Customers"
+                        amount={totalCustomers.toString()}
                         logo={<Users />}
                     />
                 </div>
@@ -91,9 +114,13 @@ const DashboardClient = ({ initialData }: DashboardClientProps) => {
                 {/* Charts */}
                 <ChartBar
                     title="Quarterly Sales Report"
-                    data={quarterlySales}
+                    data={quarterlySales.map((item) => ({
+                        quarter: `Q${item.Quarter}`,
+                        quarterlySales: item.TotalRevenue,
+                        total_orders: item.TotalOrders,
+                    }))}
                     xAxisDataKey="quarter"
-                    barDataKey="sales"
+                    barDataKey="quarterlySales"
                     barFill="#3b82f6"
                 />
                 <div className="grid gap-4 md:grid-cols-2">

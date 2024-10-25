@@ -44,7 +44,17 @@ const ChartBar: React.FC<ChartBar> = ({
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey={xAxisDataKey} type={xaxisType} />
                             <YAxis dataKey={yAxisDataKey} type={yaxisType} />
-                            <Tooltip />
+                            <Tooltip formatter={(value, name, props) => {
+                                if (name === "quarterlySales") {
+                                    const { payload } = props;
+                                    return [
+                                        <div className="flex flex-col">
+                                            <span>Total Orders: {payload.total_orders}</span>
+                                            <span>Total Revenue: ${value}</span>
+                                        </div>
+                                    ];
+                                }
+                            }} />
                             <Bar dataKey={barDataKey} fill={barFill} />
                         </BarChart>
                     </ResponsiveContainer>

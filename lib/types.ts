@@ -25,3 +25,19 @@ export interface CustomerOrderReport extends RowDataPacket {
     Avg_Order_Value: number;    // Average order value for the customer
 }
 
+
+export interface Order {
+    orderId: string;
+    date: string;
+    items: string[];
+    total: number;
+    status: string;
+  }
+
+export interface QuarterlySales {
+    Year: number;
+    Quarter: number;
+    TotalOrders: number;
+    TotalRevenue: number;
+}
+

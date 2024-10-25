@@ -4,9 +4,8 @@ import { verifySession } from "@/lib/dal";
 import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
-import pool from "@/lib/db";  // Import your database connection
-import { RowDataPacket } from "mysql2";
-import { Customer, CustomerOrderReport } from "@/lib/types";
+import getDatabase from '@/lib/db';
+import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
 const API_URL = process.env.API_URL;
 
 /**
@@ -125,8 +124,8 @@ export async function getCategories(): Promise<string[]> {
  */
 export async function getCustomers(): Promise<{ First_Name: string, Last_Name: string }[]> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query('SELECT First_Name, Last_Name FROM Customer');
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>('SELECT First_Name, Last_Name FROM Customer');
         return rows as { First_Name: string, Last_Name: string }[]; // Return only first name and last name of customers
     } catch (error) {
         console.error('Failed to fetch customers:', error);
@@ -136,8 +135,8 @@ export async function getCustomers(): Promise<{ First_Name: string, Last_Name: s
 
 export async function getCustomerById(id: string): Promise<Customer | null> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query<Customer[]>(
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
             'SELECT * FROM Customer WHERE Customer_ID = ?',
             [id]
         );
@@ -191,23 +190,22 @@ export const generateProductInterest = () => {
 
 export async function getTotalCustomers(): Promise<number | null> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query<RowDataPacket[]>(
+        const db = await getDatabase();
+        const [rows] = await db.query<any>(
             'SELECT COUNT(*) as total FROM Customer'
         );
-
-        return rows[0].total || null;  // Return the total number of customers
+        return rows[0].total || null;
     } catch (error) {
-        console.error('Failed to fetch customer:', error);
+        console.error('Failed to fetch customers:', error);
         return null;
     }
-};
+}
 
 export async function getTotalOrders(): Promise<number | null> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query<RowDataPacket[]>(
-            'SELECT COUNT(*) as total FROM TradeSi.Order'
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            'SELECT COUNT(*) as total FROM TradeSi.Payment'
         );
 
         return rows[0].total || null;  // Return the total number of orders
@@ -219,8 +217,8 @@ export async function getTotalOrders(): Promise<number | null> {
 
 export async function getAvgOrderValue(): Promise<number | null> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query<RowDataPacket[]>(
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
             'SELECT AVG(Price) as avg From TradeSi.Payment'
         );
         return rows[0].avg || null;  // Return the average order value
@@ -230,66 +228,11 @@ export async function getAvgOrderValue(): Promise<number | null> {
     }
 }
 
-// export async function getCustomerOrderReport(): Promise<CustomerOrderReport[] | null> {
-//     let connection;
-//     try {
-//         // Get a connection from the pool
-//         connection = await pool(); 
-        
-//         // Execute the query
-//         const [rows] = await connection.query<CustomerOrderReport[]>(
-//             `SELECT 
-//                 c.Customer_ID,
-//                 CONCAT(c.First_Name, ' ', COALESCE(c.Last_Name, '')) AS Name,
-//                 c.Email,
-//                 COUNT(DISTINCT o.Order_ID) AS Total_Orders,
-//                 SUM(p.Price) AS Total_Spent,
-//                 MAX(o.Date) AS Last_Order,
-//                 AVG(p.Price) AS Avg_Order_Value
-//             FROM 
-//                 Customer c
-//                 INNER JOIN Cart ct ON c.Customer_ID = ct.Customer_ID
-//                 INNER JOIN \`Order\` o ON ct.Cart_ID = o.Cart_ID  -- Escaping 'Order' as it's a reserved keyword
-//                 INNER JOIN Payment p ON o.Payment_ID = p.Payment_ID
-//             GROUP BY 
-//                 c.Customer_ID, c.First_Name, c.Last_Name, c.Email
-//             ORDER BY 
-//                 c.Customer_ID;`
-//         );
-//         // Return the result
-//         return rows[0];
-//     } catch (error) {
-//         console.error('Failed to fetch customer order report:', error);
-//         return null;
-//     } finally {
-//         // Close the connection if it was opened
-//         if (connection) {
-//             await connection.end();
-//         }
-//     }
-// }
-
 export async function getCustomerOrderReport(): Promise<CustomerOrderReport | null> {
     try {
-        const connection = await pool();  // Await the connection to the database
-        const [rows] = await connection.query<CustomerOrderReport[]>(
-            `SELECT 
-                c.Customer_ID,
-                CONCAT(c.First_Name, ' ', COALESCE(c.Last_Name, '')) AS Name,
-                c.Email,
-                COUNT(DISTINCT o.Order_ID) AS Total_Orders,
-                SUM(p.Price) AS Total_Spent,
-                MAX(o.Date) AS Last_Order,
-                AVG(p.Price) AS Avg_Order_Value
-            FROM 
-                Customer c
-                INNER JOIN Cart ct ON c.Customer_ID = ct.Customer_ID
-                INNER JOIN TradeSi.Order o ON ct.Cart_ID = o.Cart_ID  -- Escaping 'Order' as it's a reserved keyword
-                INNER JOIN Payment p ON o.Payment_ID = p.Payment_ID
-            GROUP BY 
-                c.Customer_ID, c.First_Name, c.Last_Name, c.Email
-            ORDER BY 
-                c.Customer_ID;`
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            "SELECT * FROM TradeSi.CustomerAnalytics;"
         );
         const data = JSON.parse(JSON.stringify(rows));
         return data;
@@ -299,6 +242,49 @@ export async function getCustomerOrderReport(): Promise<CustomerOrderReport | nu
     }
 };
 
+export async function getCustomerOrders(id: string): Promise<Order| null> {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `SELECT * FROM CustomerOrdersView WHERE customerID = ?`,
+            [id]
+        );
+        const data = JSON.parse(JSON.stringify(rows));
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return null;
+    }
+}
 
+export async function getTotalRevenue(): Promise<number | null> {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            'SELECT SUM(Price) as total From TradeSi.Payment'
+        );
+        return rows[0].total || null;  // Return the total revenue
+    } catch (error) {
+        console.error('Failed to fetch orders:', error);
+        return null;
+    }
+}
+
+export async function getQuarterlySales(year: number): Promise<QuarterlySales[] | null> {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `SELECT * FROM TradeSi.QuarterlySalesReport WHERE Year = ?`,
+            [year]
+        );
+        const data = JSON.parse(JSON.stringify(rows));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return null;
+    }
+}
 
 
