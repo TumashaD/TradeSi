@@ -287,4 +287,68 @@ export async function getQuarterlySales(year: number): Promise<QuarterlySales[] 
     }
 }
 
+export async function getTopSellingProducts(startDate:string,endDate:string) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `CALL GetTopSellingProducts('${startDate}', '${endDate}')`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getTopCategories(startDate:string,endDate:string) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `call TradeSi.GetCategoryOrderStats('${startDate}', '${endDate}');`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getMonthlyProductInterest(p_id:number,year:number) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `CALL GetMonthlyProductInterest(${p_id}, ${year});`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getAllProductNames() {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `SELECT Product_ID,Title FROM TradeSi.Product;`
+        );
+        const data = JSON.parse(JSON.stringify(rows));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
 

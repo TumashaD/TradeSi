@@ -40,4 +40,3 @@ export interface QuarterlySales {
     TotalOrders: number;
     TotalRevenue: number;
 }
-
