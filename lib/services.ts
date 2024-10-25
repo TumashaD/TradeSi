@@ -166,18 +166,20 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 };
 
 export interface ProductData extends RowDataPacket {
-    Item_ID: bigint;
-    Field: string;
-    Price: string;
-    SKU: number;
-    Quantity: number;
-    Image: string;
-    Variant_ID: bigint | null;
-    Variant_Type: string | null;
-    Variant_Name: string | null;
-    Attribute_ID: bigint | null;
-    Attribute_Type: string | null;
-    Attribute_Name: string | null;
+    Product_ID: bigint;
+    Title: string;
+    Base_price: string;
+    Description: string;
+    item_id: number;
+    SKU: string;
+    imageURL: string | null;
+    price_increment: string;
+    quantity: number | null;
+    Type_ID: number | null;
+    Attribute_ID: number | null;
+    value: string | null;
+    Attribute_Type_ID: number | null;
+    Attribute_Type_Name: string | null;
 }
 
 export async function fetchProductData(id: string): Promise<ProductData[][] | null> {
