@@ -49,6 +49,7 @@ export default async function UserAvatarOptions() {
                     {capitalizeFirstCharOfEveryWord(
                         user?.name?.firstname + " " + user?.name?.lastname,
                     )}
+                </Link>
                 </DropdownMenuLabel>
 
                 {/* Only render the dashboard link for admins */}

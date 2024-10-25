@@ -16,7 +16,6 @@ const corsOptions = {
 
 // 1. Specify protected and public routes
 const protectedRoutes = [
-    "/signup",
     "/products",
     "/products/:path*", // target all paths under /products
     "/admin",
