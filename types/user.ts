@@ -25,3 +25,17 @@ export interface LoginFrom {
     username: string;
     password: string;
 }
+
+export interface CustomerData {
+    isGuest: boolean;
+    password: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    telephone: string;
+    houseNo: string;
+    addressLine1: string;
+    addressLine2?: string;  // Optional
+    city: string;
+    zipcode: string;
+  }

@@ -23,7 +23,7 @@ import { ResultSetHeader } from 'mysql2';
 export async function createCustomer(customerData: CustomerData): Promise<any> {
     let connection; // Declare the connection variable here
     try {
-      connection = await pool.getConnection(); // Get a connection from the pool
+       const connection = await pool(); // Get a connection from the pool
       const sql = `
         INSERT INTO Customer (
           Is_Guest, Password, First_Name, Last_Name, Email, Telephone, 
