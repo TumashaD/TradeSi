@@ -106,7 +106,25 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
+
+    // Combine all the data into a single object
+    const orderData = {
+      products,
+      totalPrice,
+      customer,
+      formData: values,
+    };
+
+    // Convert the order data to JSON format
+    const orderDataJson = JSON.stringify(orderData);
     
+
+    // Log the JSON for debugging
+    console.log("Order Data in JSON:", orderDataJson);
+
+    // Send the orderDataJson to another file or API here
+    // Example: sendOrder(orderDataJson);
+
     // Open the alert dialog on successful submission
     setOpenDialog(true);
   };
