@@ -13,7 +13,7 @@ export default function ProductCard({ product }: { product: Product }) {
     const incQty = useStore.use.incQty();
     const decQty = useStore.use.decQty();
     const products = useStore((state) => state.products);
-    const productQnt = products.find((p) => p.id === product.id)?.quantity;
+    const productQnt = products.find((p) => p.product_id === product.product_id)?.quantity;
 
 
     const isMount = useMounted();
@@ -22,12 +22,12 @@ export default function ProductCard({ product }: { product: Product }) {
     return (
         <article className="group flex h-full max-h-full  w-full animate-fadeIn flex-col space-y-2 rounded-md border-2 bg-background-secondary p-4  shadow-sm transition-opacity dark:border-0">
             <Link
-                href={`/products/${product.id}`}
+                href={`/products/${product.product_id}`}
                 passHref
                 className="flex max-h-48 flex-1 rounded bg-[#FEFAF6] py-4 dark:bg-white"
             >
                 <Image
-                    src={product.image}
+                    src={product.imageURL}
                     width={300}
                     height={300}
                     alt={product.title}
@@ -36,7 +36,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </Link>
             <div className="flex flex-1 flex-col justify-between gap-4">
                 <Link
-                    href={`/products/${product.id}`}
+                    href={`/products/${product.product_id}`}
                     passHref
                     className="line-clamp-2 text-sm font-semibold"
                 >
@@ -59,14 +59,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
                 <div className="flex items-baseline justify-between">
                     <p className="text-base font-bold leading-none">
-                        ${product.price}
+                        ${product.base_price}
                     </p>
                     <div className="flex items-center justify-between gap-1">
                         <Button
                             variant="outline"
                             className="h-5 w-5 rounded-full bg-[#DAC0A3] p-0 dark:bg-background "
                             size={"sm"}
-                            onClick={() => decQty(product.id, product)}
+                            onClick={() => decQty(product.product_id, product)}
                             disabled={!productQnt}
                         >
                             <Minus className="h-4 w-4" />
@@ -76,7 +76,7 @@ export default function ProductCard({ product }: { product: Product }) {
                             variant="outline"
                             className="h-5 w-5 rounded-full bg-[#DAC0A3] p-0 p-0 dark:bg-background"
                             size={"sm"}
-                            onClick={() => incQty(product.id, product)}
+                            onClick={() => incQty(product.product_id, product)}
                         >
                             <Plus className="h-4 w-4" />
                         </Button>

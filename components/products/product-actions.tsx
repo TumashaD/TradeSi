@@ -12,16 +12,16 @@ export default function ProductActions({ product }: { product: Product }) {
     const addProduct = useStore.use.addProduct();
     const removeProduct =  useStore.use.removeProduct();
     const products = useStore((state) => state.products);
-    const productQnt = products.find((p) => p.id === product.id)?.quantity;
+    const productQnt = products.find((p) => p.product_id === product.product_id)?.quantity;
 
 
   return (
       <div className="flex items-center justify-center gap-4 ">
           <Button
               variant="default"
-              size="lg-res"
+              size="lg"
               className="px-4  min-[460px]:px-8"
-              onClick={() => decQty(product.id, product)}
+              onClick={() => decQty(product.product_id, product)}
               disabled={!productQnt}
           >
               <Minus className="h-4 w-4" />
@@ -30,9 +30,9 @@ export default function ProductActions({ product }: { product: Product }) {
               {productQnt ? (
                   <Button
                       variant="destructive"
-                      size="lg-res"
+                      size="lg"
                       className="px-4 min-[460px]:px-8"
-                      onClick={() => removeProduct(product.id)}
+                      onClick={() => removeProduct(product.product_id)}
                   >
                       <Trash className="mr-4" />
                       Remove from cart
@@ -41,7 +41,7 @@ export default function ProductActions({ product }: { product: Product }) {
                   <Button
                       onClick={() => addProduct(product)}
                       variant="default"
-                      size="lg-res"
+                      size="lg"
                       className="sm:max-w-fit"
                   >
                       <ShoppingCart className="mr-4" />
@@ -51,9 +51,9 @@ export default function ProductActions({ product }: { product: Product }) {
           </span>
           <Button
               variant="default"
-              size="lg-res"
+              size="lg"
               className="px-4 relative  min-[460px]:px-8"
-              onClick={() => incQty(product.id, product)}
+              onClick={() => incQty(product.product_id, product)}
           >
               {productQnt && (
                   <span className="absolute right-0 top-0 -mr-1 -mt-2 flex h-5 w-5 items-center justify-center rounded-full  bg-red-500 text-xs text-white">

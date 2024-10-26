@@ -5,7 +5,7 @@ import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
 import getDatabase from '@/lib/db';
-import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
+import { Customer, CustomerOrderReport, Order, QuarterlySales } from "@/lib/types";
 const API_URL = process.env.API_URL;
 
 /**
@@ -63,31 +63,33 @@ export async function getProduct(id: string): Promise<Product | null> {
  * @return {Promise<Product[]>}
  */
 export async function getProducts(
-    category?: string,
-    query?: string,
+    category?: string
 ): Promise<Product[]> {
     // For enhanced security, the verifySession function can be used to authenticate the user.
     // While middleware is a viable option, verifySession can also be directly utilized within services.
     // We can use it also for checking the user role and other user data.
     // This forms part of the Data Access Layer (DAL).
-    const session = await verifySession();
-    if (!session) return [];
+    // const session = await verifySession();
+    // if (!session) return [];
 
     try {
-        const url = new URL(`${API_URL}/products`);
+        const connection = await getDatabase();  // Await the connection to the database
         if (category) {
-            url.pathname += `/category/${category}`;
-        }
-
-        const { data } = await axios.get<Product[]>(url.toString());
-
-        if (query) {
-            return data.filter((product) =>
-                product.title.toLowerCase().includes(query?.toLowerCase()),
+            const [rows] = await connection.query<any>(
+                "call viewCategoryProducts(?)", [category]
             );
+            const data = JSON.parse(JSON.stringify(rows));
+            console.log("category products");
+            console.log(data);
+            return data;
+        } else {
+            const [rows] = await connection.query<any>(
+                `select * from TradeSi.AllProducts`);
+            const data = JSON.parse(JSON.stringify(rows));
+            console.log("all products");
+            console.log(data);
+            return data;
         }
-
-        return data;
     } catch (error) {
         console.error(`Failed to fetch products:`, error);
         return [];
@@ -97,21 +99,21 @@ export async function getProducts(
 /**
  * Getting all categories from fake store API
  * @returns {Promise<string[]>} A promise that resolves to an array of product categories.
- * @throws {AxiosError} When the API request fails.
  */
 export async function getCategories(): Promise<string[]> {
     // For enhanced security, the verifySession function can be used to authenticate the user.
     // While middleware is a viable option, verifySession can also be directly utilized within services.
     // We can use it also for checking the user role and other user data.
     // This forms part of the Data Access Layer (DAL).
-    const session = await verifySession();
-    if (!session) return [];
+    // const session = await verifySession();
+    // if (!session) return [];
 
     try {
-        const { data } = await axios.get<string[]>(
-            `${API_URL}/products/categories`,
-        );
-        return data;
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>('SELECT c.category_id, c.Name FROM TradeSi.Category c WHERE c.Parent_Category_ID IS NULL');
+        // return rows as {category_id: bigint, Name: string}[]; // Return only category id and category name
+        const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
+        return categoryNames as string[];
     } catch (error) {
         console.error(`Failed to fetch products:`, error);
         return [];
@@ -242,7 +244,7 @@ export async function getCustomerOrderReport(): Promise<CustomerOrderReport | nu
     }
 };
 
-export async function getCustomerOrders(id: string): Promise<Order| null> {
+export async function getCustomerOrders(id: string): Promise<Order | null> {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
@@ -286,5 +288,3 @@ export async function getQuarterlySales(year: number): Promise<QuarterlySales[] 
         return null;
     }
 }
-
-

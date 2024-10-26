@@ -1,11 +1,10 @@
 export type Product = {
-    id: number;
+    product_id: number;
     title: string;
-    price: number;
     description: string;
+    base_price: number;
+    imageURL: string;
     category: string;
-    image: string;
-    rating: Rating;
 };
 
 export enum ProductCategory {
@@ -20,7 +19,7 @@ export enum ProductCategory {
 export interface ProductPageQueryParams {
     searchParams: {
         category?: string;
-        query?: string;
+        // query?: string;
     };
 }
 
