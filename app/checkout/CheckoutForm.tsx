@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,6 +29,9 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // Adjust this import based on your file structure
 import Link from "next/link"; // Import the Link component
+import { GetCard, makeOrder } from "@/lib/services";
+
+
 
 // Define the validation schema
 const formSchema = z.object({
@@ -57,11 +61,33 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
+  const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(0);
   const [noStockFlag, setNoStockFlag] = useState(false);
   const [noStockMessage, setNoStockMessage] = useState("");
+  const [card, setCard] = useState<any | null>(null);
+  
+  
+
+  // Fetch card details when the component mounts or customer changes
+  useEffect(() => {
+    const fetchCard = async () => {
+      try {
+        const cardDetails = await GetCard(customer.Customer_ID);
+        // Assuming you want to use the first card if there are multiple
+        setCard(cardDetails[0] || null); 
+      } catch (error) {
+        console.error("Failed to fetch card details:", error);
+      }
+    };
+
+    if (customer?.Customer_ID) {
+      fetchCard();
+    }
+  }, [customer]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,9 +103,9 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
       Province: "",
       Delivery_Method: "Delivery",
       Payment_Type: "Cash on Delivery",
-      Card_Number: "",
-      Expiry_Date: "",
-      Name_On_Card: "",
+      Card_Number: card?.Card_Number || "",
+      Expiry_Date: card?.Expiry_Date || "",
+      Name_On_Card: card?.Name_On_Card || "",
       CVV: "",
     },
   });
@@ -99,9 +125,9 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
         Province: "",
         Delivery_Method: "Delivery",
         Payment_Type: "Cash on Delivery",
-        Card_Number: "",
-        Expiry_Date: "",
-        Name_On_Card: "",
+        Card_Number: card?.Card_Number || "",
+        Expiry_Date: card?.Expiry_Date || "",
+        Name_On_Card: card?.Name_On_Card || "",
         CVV: "",
       });
     }
@@ -428,16 +454,46 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
             <Button variant="outline">Cancel</Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Button
-              onClick={() => {
-                console.log("Confirm Order button clicked!"); // Check if this runs
-                // Handle order confirmation logic here
-                toast.success("Order confirmed!");
-                setOpenDialog(false);
-              }}
-            >
-              Confirm Order
-            </Button>
+          <Button
+            onClick={async () => {
+              console.log("Confirm Order button clicked!"); // Check if this runs
+
+              // Gather the form data
+              const values = form.getValues();
+
+              // Ensure paymentType is correctly typed
+              const paymentType = values.Payment_Type === "Card" ? 'Card' : 'Cash On Delivery' as 'Card' | 'Cash On Delivery'; // Type assertion
+
+              const formData = {
+                paymentType,
+                deliveryType: values.Delivery_Method as string, // Adjust if needed
+                houseNo: values.House_No,
+                addressLine1: values.Address_Line1,
+                addressLine2: values.Address_Line2,
+                city: values.City,
+                province: values.Province,
+                zipcode: values.Zipcode,
+              };
+
+              try {
+                // Call the makeOrder function
+                await makeOrder(products, totalPrice, { Customer_ID: customer.Customer_ID }, formData);
+                toast.success("Order confirmed!"); // Show success message
+                
+                // Redirect to home page after a short delay to allow the toast to be seen
+                setTimeout(() => {
+                  router.push('/'); // Redirect to home page
+                }, 2000); // Adjust the delay as needed (2000 ms = 2 seconds)
+
+                setOpenDialog(false); // Close the dialog
+              } catch (error) {
+                console.error("Error making order:", error);
+                toast.error("Failed to confirm order."); // Show error message
+              }
+            }}
+          >
+            Confirm Order
+          </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

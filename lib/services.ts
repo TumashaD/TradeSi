@@ -386,3 +386,91 @@ export async function updateCustomer(
     }
   }
 
+
+/**
+ * Creates an order by inserting into the Payment, Delivery, and Order tables.
+ * @param products - The products being ordered.
+ * @param totalPrice - The total price of the order.
+ * @param customer - The customer details.
+ * @param formData - The form data containing delivery details.
+ */
+export async function makeOrder(
+    products: { Item_ID: bigint; Quantity: number }[], // Adjust type as needed
+    totalPrice: number,
+    customer: { Customer_ID: bigint }, // Adjust the structure based on your actual customer object
+    formData: {
+        paymentType: 'Card' | 'Cash On Delivery'; // Add more types if necessary
+        deliveryType: string;
+        houseNo: string;
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        province: string;
+        zipcode: string;
+    }
+): Promise<void> {
+    const connection = await pool(); // Await the connection to the database
+
+    try {
+        // Step 1: Insert into Payment Table
+        const paymentTypeId = formData.paymentType === 'Card' ? 1 : 2; // 1 for Card, 2 for Cash On Delivery
+        const [paymentResult] = await connection.query<RowDataPacket[]>('INSERT INTO Payment (type_id, Card_ID, price) VALUES (?, NULL, ?)', [paymentTypeId, Number(totalPrice).toFixed(2)]);
+        const paymentId = (paymentResult as any).insertId; // Access insertId from the result
+
+        // Step 2: Insert into Delivery Table
+        const [deliveryResult] = await connection.query<RowDataPacket[]>('INSERT INTO Delivery (Deliverey_type, Status) VALUES (?, ?)', [formData.deliveryType, 'Processing']);
+        const deliveryId = (deliveryResult as any).insertId; // Access insertId from the result
+
+        // Step 3: Insert into Order Table and retrieve the Order_ID
+        const [orderResult] = await connection.query<RowDataPacket[]>('INSERT INTO `Order` (Customer_ID, Date, Payment_ID, Delivery_ID, House_No, Address_Line1, Address_Line2, City, Province, Zipcode) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)', [
+            customer.Customer_ID,
+            paymentId,
+            deliveryId,
+            formData.houseNo,
+            formData.addressLine1,
+            formData.addressLine2 || null, // Handle optional field
+            formData.city,
+            formData.province,
+            formData.zipcode,
+        ]);
+        const orderId = (orderResult as any).insertId; // Get the new Order_ID
+
+        // Step 4: Insert each product into the Order_Item table
+        for (const product of products) {
+            await connection.query<RowDataPacket[]>('INSERT INTO Order_Item (Order_ID, Item_ID, Quantity) VALUES (?, ?, ?)', [
+                orderId,
+                product.Item_ID,
+                product.Quantity,
+            ]);
+        }
+
+    } catch (error) {
+        console.error('Failed to create order:', error);
+        throw error; // Handle or rethrow as needed
+    }
+}
+
+/**
+ * Retrieves card details for a specific customer.
+ * @param customerId - The ID of the customer whose card details are to be retrieved.
+ * @returns A promise that resolves to an array of card details or an empty array if no cards are found.
+ */
+export async function GetCard(customerId: bigint): Promise<Array<{ Card_ID: bigint; Card_Number: string; Name_On_Card: string; Expiry_Date: Date }>> {
+    const connection = await pool(); // Await the connection to the database
+
+    try {
+        // Query to get card details for the given customer ID
+        const [rows] = await connection.query<RowDataPacket[]>('SELECT Card_ID, Card_Number, Name_On_Card, Expiry_Date FROM Card_Details WHERE Customer_ID = ?', [customerId]);
+
+        // Map the results to the desired format
+        return rows.map(row => ({
+            Card_ID: row.Card_ID,
+            Card_Number: row.Card_Number,
+            Name_On_Card: row.Name_On_Card,
+            Expiry_Date: row.Expiry_Date
+        }));
+    } catch (error) {
+        console.error('Failed to retrieve card details:', error);
+        throw error; // Handle or rethrow as needed
+    }
+}
