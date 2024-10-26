@@ -1,4 +1,3 @@
-// Add this line at the top of your file
 "use client"; 
 
 import { Button } from "@/components/ui/button";
@@ -6,19 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Use router to navigate programmatically
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-
+ 
 const SignUp = () => {
   const [pending, setPending] = useState(false);
-  const router = useRouter(); // Get router instance
+  const router = useRouter();
 
-  const handleSignUp = async (event) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
 
-    const formData = new FormData(event.target);
+    const formData = new FormData(event.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
 
     // Check for password match
@@ -34,19 +33,34 @@ const SignUp = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          telephone: data.telephone,
+          houseNumber: data.houseNumber,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          city: data.city,
+          zipcode: data.zipcode,
+          password: data.password,
+        }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Something went wrong.");
+        throw new Error(result.message || "Something went wrong.");
       }
 
       toast.success(result.message);
-      router.push("/login"); // Redirect to login after successful signup
+      router.push("/login");
     } catch (error) {
-      toast.error(error.message);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
     } finally {
       setPending(false);
     }
