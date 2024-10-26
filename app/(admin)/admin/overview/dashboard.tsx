@@ -18,20 +18,9 @@ import { QuarterlySales } from "@/lib/types";
 import { get } from "http";
 import ProductInterestAnalysis from "./productInterest";
 
-interface DashboardClientProps {
-    initialData: {
-        initialQuarterlySales: any[];
-        initialTopProducts: any[];
-        initialCategoryData: any[];
-        initialProductInterest: any[];
-    };
-}
-
-const DashboardClient = ({ initialData }: DashboardClientProps) => {
+const DashboardClient = () => {
     const [selectedYear, setSelectedYear] = useState(2024);
     const [quarterlySales, setQuarterlySales] = useState<QuarterlySales[]>([]);
-    const [categoryData] = useState(initialData.initialCategoryData);
-    const [productInterest] = useState(initialData.initialProductInterest);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [totalOrders, setTotalOrders] = useState(0);
     const [totalRevenue, setTotalRevenue] = useState(0);

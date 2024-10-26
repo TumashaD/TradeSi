@@ -1,5 +1,5 @@
 "use server";
-import { verifySession } from "@/lib/dal";
+import { verifySession ,loginSchema} from "./dal";
 import { ProductCategory } from "@/types/product";
 import axios from "axios";
 import { revalidatePath } from "next/cache";
@@ -7,63 +7,166 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 const API_URL = process.env.API_URL;
+import { compare, hash } from 'bcryptjs';
+import { SignJWT, jwtVerify } from 'jose';
+import { cache } from 'react';
+import { RowDataPacket } from 'mysql2';
+import getDatabase from './db';
 
-const loginSchema = z.object({
-    username: z.string(),
-    password: z.string(),
-});
+// Schema for login validation
 
-/**
- ** Login in user  Action
- * @param {string} username - the username of user
- * @param {string} password - the password of user
- */
-export async function login(formData: FormData) {
+
+interface CustomerRow extends RowDataPacket {
+    Customer_ID: number;
+    Email: string;
+    Password: string | null;
+    is_Guest: number;
+    First_Name: string;
+    Last_Name: string | null;
+  }
+  
+  interface SessionRow extends RowDataPacket {
+    Session_ID: number;
+    CreatedAt: Date;
+    ExpiresAt: Date;
+  }
+
+
+  // Create a new session
+async function createSession(customerId: number): Promise<string> {
+    const db = await getDatabase();
+    const sessionId = Date.now();
+    console.log(sessionId);
+    const createdAt = new Date();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    
+  
     try {
-        const validatedFields = loginSchema.safeParse({
-            username: formData.get("username"),
-            password: formData.get("password"),
-        });
-        // Return early if the form data is invalid
-        if (!validatedFields.success) {
+      await db.query<[SessionRow[], any]>(
+        'INSERT INTO Session (Session_ID, CreatedAt, ExpiresAt) VALUES (?, ?, ?)',
+        [sessionId, createdAt, expiresAt]
+      );
+  
+      // Create JWT token
+      if (!process.env.JWT_SECRET_KEY) {
+        throw new Error('JWT_SECRET_KEY is not defined in environment variables');
+      }
+  
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
+      const token = await new SignJWT({
+        user: true,
+        sub: customerId.toString(),
+        sessionId: sessionId.toString()
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
+        .sign(secret);
+  
+      return token;
+    } catch (error) {
+      console.error('Error creating session:', error);
+      throw error;
+    }
+  }
+
+// Login function
+export async function login(formData: FormData) {
+    const db = await getDatabase();
+    
+    try {
+      const validatedFields = loginSchema.safeParse({
+        email: formData.get("email"),
+        password: formData.get("password"),
+      });
+  
+      if (!validatedFields.success) {
+        return {
+          errors: validatedFields.error.flatten().fieldErrors,
+        };
+      }
+  
+      const { email, password } = validatedFields.data;
+  
+      // Get customer from database
+      const [rows] = await db.query<[CustomerRow[], any]>(
+        'Select * FROM TradeSi.Customer where Email=? and Password=?',
+        [email, password]
+      );
+      const customer = JSON.parse(JSON.stringify(rows[0]));
+      console.log(customer);
+
+      // Check if customer exists
+        if (customer === undefined) {
             return {
-                errors: validatedFields.error.flatten().fieldErrors,
+                errors: {
+                    email: "Invalid email",
+                    password: "Invalid password"
+                }
             };
         }
-        const res = await axios.post(
-            `${API_URL}/auth/login`,
-            validatedFields.data,
-        );
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        // Set cookie
-        cookies().set("token", res?.data?.token, {
-            httpOnly: true,
-            secure: true,
-            expires: expiresAt,
-            sameSite: "lax",
-            path: "/",
-        });
+  
+      // Create session and get token
+      const token = await createSession(customer.Customer_ID);
+      console.log(token);
+  
+      // Set cookie
+      const cookieExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      cookies().set("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires: cookieExpiry,
+        sameSite: "lax",
+        path: "/",
+      });
+      
+      return { success: true };
     } catch (error: any) {
-        console.error(`Failed to login user:`, error?.response?.data);
-        return {
-            errors: {
-                username: "There was an error with this username",
-                password: "There was an error with this password",
-            },
-            message: error?.response?.data,
-        };
+      console.error('Login error:', error);
+      return {
+        errors: {
+          email: "An error occurred during login",
+          password: "An error occurred during login"
+        },
+        message: error.message
+      };
     }
-    redirect("/");
-}
+  }
+
 
 /**
  ** Logs out the user by deleting the token cookie and redirecting to the login page.
  * @returns {Promise<void>}
  */
-export async function logout(): Promise<void> {
-    cookies().delete("token");
+// Logout function
+export async function logout() {
+    const db = await getDatabase();
+    
+    try {
+      const token = cookies().get("token")?.value;
+      if (token) {
+        if (!process.env.JWT_SECRET_KEY) {
+          throw new Error('JWT_SECRET_KEY is not defined in environment variables');
+        }
+  
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
+        const { payload } = await jwtVerify(token, secret);
+  
+        if (payload.sessionId) {
+          // Delete session from database
+          await db.query<[SessionRow[], any]>(
+            'DELETE FROM Session WHERE Session_ID = ?',
+            [payload.sessionId]
+          );
+        }
+      }
+      
+      cookies().delete("token");
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     redirect("/login");
-}
+  }
 
 const formSchema = z.object({
     title: z.string().min(1),

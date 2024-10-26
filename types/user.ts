@@ -1,25 +1,18 @@
-export type User = {
+export interface User {
     id: number;
-    email?: string;
-    username: string;
-    password?: string;
-    name: {
-        firstname: string;
-        lastname: string;
-    };
-    address: {
-        city: string;
-        street: string;
-        number: number;
-        zipcode: string;
-        geolocation: {
-            lat: string;
-            long: string;
-        };
-    };
-    phone: string;
+    firstName: string;
+    lastName: string | null;
+    email: string;
+    telephone: string;
+    houseNo: string | null;
+    addressLine1: string;
+    addressLine2: string | null;
+    city: string;
+    zipcode: string;
     isAdmin: boolean;
-};
+    isGuest: boolean;
+    password: string;
+  }
 
 export interface LoginFrom {
     username: string;
