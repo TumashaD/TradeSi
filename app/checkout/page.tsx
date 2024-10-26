@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckoutForm } from './CheckoutForm';
 import { getCustomerById } from "@/lib/services";
+import { Toaster } from 'react-hot-toast';
 
 type CartItemDetail = {
     Item_ID: number;
@@ -51,6 +52,7 @@ const CheckoutPage = () => {
 
     return (
         <div className="flex h-screen w-full">
+            <Toaster /> {/* This needs to be included for toasts to show */}
             {/* Cart Section */}
             <div className="w-3/5 p-2 ml-10 mt-10">
                 <div className="flow-root">

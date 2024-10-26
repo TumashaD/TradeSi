@@ -41,14 +41,13 @@ const formSchema = z.object({
   City: z.string().min(1, { message: "City is required." }),
   Zipcode: z.string().min(1, { message: "Zip code is required." }),
   Province: z.string().min(1, { message: "Province is required." }),
+  Delivery_Method: z.enum(["Store Pickup", "Delivery"]),
   Payment_Type: z.enum(["Cash on Delivery", "Card"]),
   Card_Number: z.string().optional(),
   Expiry_Date: z.string().optional(),
   Name_On_Card: z.string().optional(),
   CVV: z.string().optional(),
 });
-
-
 
 // Define the props type
 interface CheckoutFormProps {
@@ -58,9 +57,11 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
-  console.log(products, totalPrice, customer);
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(0);
+  const [noStockFlag, setNoStockFlag] = useState(false);
+  const [noStockMessage, setNoStockMessage] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,6 +75,7 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
       City: customer?.City || "",
       Zipcode: customer?.Zipcode || "",
       Province: "",
+      Delivery_Method: "Delivery",
       Payment_Type: "Cash on Delivery",
       Card_Number: "",
       Expiry_Date: "",
@@ -95,6 +97,7 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
         City: customer?.City || "",
         Zipcode: customer?.Zipcode || "",
         Province: "",
+        Delivery_Method: "Delivery",
         Payment_Type: "Cash on Delivery",
         Card_Number: "",
         Expiry_Date: "",
@@ -104,26 +107,39 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
     }
   }, [customer, form]);
 
+  // Check stock and set delivery time
+  useEffect(() => {
+    let deliveryTime = 0;
+    let outOfStockItems: any[] = [];
+    const deliveryMethod = form.watch("Delivery_Method");
+    const city = form.watch("City");
+
+    if (deliveryMethod === "Delivery") {
+      deliveryTime = city === "Colombo" ? 5 : 7;
+    }
+
+    // Check for stock status
+    products.forEach((item) => {
+      if (item.Stock === 0) {
+        setNoStockFlag(true);
+        outOfStockItems.push(item.Title);
+      }
+    });
+
+    // Set estimated delivery time
+    if (noStockFlag) {
+      deliveryTime += 3; // Add 3 days for out-of-stock items
+      setNoStockMessage(`Reason for delay: ${outOfStockItems.join(", ")} currently out of stock`);
+    } else {
+      setNoStockFlag(false);
+      setNoStockMessage("");
+    }
+
+    setEstimatedDeliveryTime(deliveryTime);
+  }, [products, form.watch("Delivery_Method"), form.watch("City")]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
-
-    // Combine all the data into a single object
-    const orderData = {
-      products,
-      totalPrice,
-      customer,
-      formData: values,
-    };
-
-    // Convert the order data to JSON format
-    const orderDataJson = JSON.stringify(orderData);
-    
-
-    // Log the JSON for debugging
-    console.log("Order Data in JSON:", orderDataJson);
-
-    // Send the orderDataJson to another file or API here
-    // Example: sendOrder(orderDataJson);
 
     // Open the alert dialog on successful submission
     setOpenDialog(true);
@@ -251,9 +267,9 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
             name="Zipcode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Zipcode</FormLabel>
+                <FormLabel>Zip Code</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your zipcode" {...field} />
+                  <Input placeholder="Enter your zip code" {...field} />
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>
@@ -268,6 +284,24 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
                 <FormLabel>Province</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your province" {...field} />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Delivery Method */}
+          <FormField
+            control={form.control}
+            name="Delivery_Method"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Delivery Method</FormLabel>
+                <FormControl>
+                  <select {...field} className="border rounded-md p-2 ml-2">
+                    <option value="Delivery">Delivery</option>
+                    <option value="Store Pickup">Store Pickup</option>
+                  </select>
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>
@@ -366,29 +400,48 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
             </>
           )}
 
-          {/* Submit Button */}
-          <Button type="submit" className="mt-4">Confirm Order</Button>
+          <Button type="submit" className="mt-4">
+            Proceed to Checkout
+          </Button>
         </form>
-
-        {/* Alert Dialog */}
-        <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Order Confirmation</AlertDialogTitle>
-              <AlertDialogDescription>
-                You have successfully placed your order.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-            <AlertDialogAction asChild>
-            <Link href="/" onClick={() => setOpenDialog(false)}> {/* Close the dialog when navigating */}
-                Go Back Home
-            </Link>
-            </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+      <AlertDialogTrigger asChild>
+        <Button className="hidden">Open Dialog</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Your Order</AlertDialogTitle>
+          <AlertDialogDescription>
+            {noStockFlag && (
+              <>
+                <p>{noStockMessage}</p>
+              </>
+            )}
+            <p>Estimated delivery time: {estimatedDeliveryTime} days</p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel asChild>
+            <Button variant="outline">Cancel</Button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button
+              onClick={() => {
+                console.log("Confirm Order button clicked!"); // Check if this runs
+                // Handle order confirmation logic here
+                toast.success("Order confirmed!");
+                setOpenDialog(false);
+              }}
+            >
+              Confirm Order
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </Form>
   );
 }
