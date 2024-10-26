@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from 'lucide-react'; // Ensure you have lucide-react installed
+import { User } from "@/types/user";
 
 // Define the validation schema
 const formSchema = z.object({
@@ -31,40 +32,26 @@ const formSchema = z.object({
   Zipcode: z.string().min(1, { message: "Zip code is required." }),
 });
 
-interface Customer {
-  Customer_ID: bigint;        // Unique customer identifier
-  is_Guest: boolean;          // True if the customer is a guest, false otherwise
-  Password: string;           // Customer's password
-  First_Name: string;         // Customer's first name
-  Last_Name: string;          // Customer's last name
-  Email: string;              // Customer's email address
-  Telephone: string;          // Customer's telephone number
-  House_No: string;           // Customer's house number
-  Address_Line1: string;      // First line of the customer's address
-  Address_Line2?: string;     // Second line of the customer's address (optional)
-  City: string;               // Customer's city
-  Zipcode: string;            // Customer's postal/zip code
-}
 
 interface ProfileFormProps {
-  customer: Customer | null; // Accept customer data as a prop
+  user: User | null; // Accept customer data as a prop
 }
 
-export function ProfileForm({ customer }: ProfileFormProps) {
+export function ProfileForm({ user }: ProfileFormProps) {
   const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      First_Name: customer?.First_Name || "",
-      Last_Name: customer?.Last_Name || "",
-      Email: customer?.Email || "",
-      Password: "12345678", // Consider removing default password in production
-      Telephone: customer?.Telephone || "",
-      House_No: customer?.House_No || "",
-      Address_Line1: customer?.Address_Line1 || "",
-      Address_Line2: customer?.Address_Line2 || "",
-      City: customer?.City || "",
-      Zipcode: customer?.Zipcode || "",
+      First_Name: user?.firstName || "",
+      Last_Name: user?.lastName|| "",
+      Email: user?.email|| "",
+      Password: user?.password, // Consider removing default password in production
+      Telephone: user?.telephone || "",
+      House_No: user?.houseNo || "",
+      Address_Line1: user?.addressLine1 || "",
+      Address_Line2: user?.addressLine2 || "",
+      City: user?.city|| "",
+      Zipcode: user?.zipcode || "",
     },
   });
 

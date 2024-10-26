@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
+import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import {
     Select,
     SelectContent,
@@ -8,46 +9,56 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { generateQuarterlySales, getTotalRevenue, getTotalCustomers, getTotalOrders, getQuarterlySales } from "@/lib/services";
+import { getTotalRevenue, getTotalCustomers, getTotalOrders, getQuarterlySales, getTopSellingProducts,generateTopProducts, getTopCategories } from "@/lib/services";
 import SummaryCard from "../../summaryCard";
 import ChartBar from "../../barChart";
 import ChartLine from "../../lineChart";
-import { DollarSign, ShoppingBag, User, Users } from "lucide-react";
-import { set } from "zod";
+import { DollarSign, ShoppingBag, Users } from "lucide-react";
 import { QuarterlySales } from "@/lib/types";
+import { get } from "http";
+import ProductInterestAnalysis from "./productInterest";
 
-interface DashboardClientProps {
-    initialData: {
-        initialQuarterlySales: any[];
-        initialTopProducts: any[];
-        initialCategoryData: any[];
-        initialProductInterest: any[];
-    };
-}
-
-const DashboardClient = ({ initialData }: DashboardClientProps) => {
+const DashboardClient = () => {
     const [selectedYear, setSelectedYear] = useState(2024);
     const [quarterlySales, setQuarterlySales] = useState<QuarterlySales[]>([]);
-    const [topProducts] = useState(initialData.initialTopProducts);
-    const [categoryData] = useState(initialData.initialCategoryData);
-    const [productInterest] = useState(initialData.initialProductInterest);
     const [totalCustomers, setTotalCustomers] = useState(0);
     const [totalOrders, setTotalOrders] = useState(0);
     const [totalRevenue, setTotalRevenue] = useState(0);
+    const [startDate, setStartDate] = useState<string>("2024-01-01");
+    const [endDate, setEndDate] = useState<string>("2024-12-31");
+    const [topSellingProducts, setTopSellingProducts] = useState<[]>([]);
+    const [topCategories, setTopCategories] = useState<[]>([]);
+
+
+    const handleDateRangeChange = async (start: string, end: string) => {
+        setStartDate(start);
+        setEndDate(end);
+        const newTopSellingProducts = await getTopSellingProducts(start, end);
+        const newTopCategories = await getTopCategories(start, end);
+        setTopSellingProducts(newTopSellingProducts || []);
+        setTopCategories(newTopCategories || []);
+        console.log('Selected date range:', { start, end });
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [totalCustomers,totalOrders,totalRevenue,quarterlySales] = await Promise.all([
+                const [totalCustomers,totalOrders,totalRevenue,quarterlySales,topSellingProducts,topCategories] = await Promise.all([
                     getTotalCustomers(),
                     getTotalOrders(),
                     getTotalRevenue(),
                     getQuarterlySales(selectedYear),
+                    getTopSellingProducts(startDate, endDate),
+                    getTopCategories(startDate, endDate)
                 ]);
                 setTotalCustomers(totalCustomers || 0);
                 setTotalOrders(totalOrders || 0);
                 setTotalRevenue(totalRevenue || 0);
                 setQuarterlySales(quarterlySales || []);
+                setTopSellingProducts(topSellingProducts || []);
+                setTopCategories(topCategories || []);
+                console.log('Quarterly Sales:', quarterlySales);
+                console.log('Top Selling Products:', topSellingProducts);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -55,11 +66,10 @@ const DashboardClient = ({ initialData }: DashboardClientProps) => {
         fetchData();
     }, []);
 
-    // Only fetch new quarterly sales when year changes
     const handleYearChange = async (year: number) => {
         setSelectedYear(year);
-        // const newQuarterlySales = await generateQuarterlySales(year);
-        // setQuarterlySales(newQuarterlySales);
+        const newQuarterlySales = await getQuarterlySales(year);
+        setQuarterlySales(newQuarterlySales || []);
     };
 
     return (
@@ -123,26 +133,38 @@ const DashboardClient = ({ initialData }: DashboardClientProps) => {
                     barDataKey="quarterlySales"
                     barFill="#3b82f6"
                 />
+                
+                            <DatePickerWithRange 
+                                className="w-full place-items-end" 
+                                onDateRangeChange={handleDateRangeChange}
+                            />
                 <div className="grid gap-4 md:grid-cols-2">
-                    <ChartBar
-                        title="Top Selling Products"
-                        data={topProducts}
-                        layout="vertical"
-                        barDataKey="sales"
-                        barFill="#10b981"
-                        yAxisDataKey="name"
-                        xaxisType="number"
-                        yaxisType="category"
-                    />
+                        <ChartBar
+                            
+                            title="Top Selling Products"
+                            data={topSellingProducts.map((item: { Title: string; total_sold: number }) => ({
+                                topProductName: item.Title,
+                                topSellingProducts: parseInt(item.total_sold.toString(), 10)
+                            }))}
+                            layout="vertical"
+                            barDataKey="topSellingProducts"
+                            barFill="#10b981"
+                            yAxisDataKey="topProductName"
+                            xaxisType="number"
+                            yaxisType="category"
+                        />
                     <ChartBar
                         title="Orders by Category"
-                        data={categoryData}
+                        data={topCategories.map((item: { Category_Name: string; Order_Count: number }) => ({
+                            category: item.Category_Name,
+                            orders: item.Order_Count
+                        }))}
                         xAxisDataKey="category"
                         barDataKey="orders"
                         barFill="#8b5cf6"
                     />
-                </div>
-                <ChartLine data={productInterest} />
+                    </div>
+                <ProductInterestAnalysis year={selectedYear} />
             </div>
         </div>
     );

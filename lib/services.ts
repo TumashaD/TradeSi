@@ -1,35 +1,91 @@
 'use server';
 
-import { verifySession } from "@/lib/dal";
+import { verifySession } from "./dal";
 import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
 import getDatabase from '@/lib/db';
-import { Customer, CustomerOrderReport, Order, QuarterlySales } from "@/lib/types";
+import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
+import { RowDataPacket } from "mysql2";
 const API_URL = process.env.API_URL;
-
-/**
- * Getting a get Current User  from fake store API
- * @returns {Promise<User> | null} A promise that resolves to the fetched user.
- */
-export async function getCurrentUser(): Promise<User | null> {
-    // For enhanced security, the verifySession function can be used to authenticate the user.
-    // While middleware is a viable option, verifySession can also be directly utilized within services.
-    // We can use it also for checking the user role and other user data.
-    // This forms part of the Data Access Layer (DAL).
-    const session = await verifySession();
-    if (!session) return null;
-    const { isAdmin, id } = session;
+  
+  interface CustomerRow extends RowDataPacket {
+    Customer_ID: number;
+    First_Name: string;
+    Last_Name: string | null;
+    Email: string;
+    Telephone: string;
+    House_No: string | null;
+    Address_Line1: string;
+    Address_Line2: string | null;
+    City: string;
+    Zipcode: string;
+    is_Guest: number;
+    Password: string | null;
+  }
+  
+  export async function getCurrentUser(): Promise<User | null> {
     try {
-        const response = await axios.get<User>(`${API_URL}/users/${id}`);
-        const { password, email, ...rest } = response.data;
-        rest.isAdmin = isAdmin;
-        return { ...rest };
-    } catch (error) {
-        console.error(`Failed to fetch User with ID ${id}:`, error);
+      // Verify session and get user authentication details
+      const session = await verifySession();
+      if (!session) return null;
+  
+      const { isAdmin, id } = session;
+  
+      // Get database instance
+      const db = await getDatabase();
+  
+      // Fetch user details from database
+      const [rows] = await db.query<[CustomerRow[], any]>(
+        `SELECT 
+          Customer_ID,
+          Password,
+          First_Name,
+          Last_Name,
+          Email,
+          Telephone,
+          House_No,
+          Address_Line1,
+          Address_Line2,
+          City,
+          Zipcode,
+          is_Guest
+        FROM Customer 
+        WHERE Customer_ID = ?`,
+        [id]
+      );
+  
+      if (!rows.length) {
+        console.error(`No user found with ID ${id}`);
         return null;
+      }
+  
+      const customer = JSON.parse(JSON.stringify(rows[0]));  
+  
+      // Transform database record to User interface
+      const user: User = {
+        id: customer.Customer_ID,
+        password: customer.Password,
+        firstName: customer.First_Name,
+        lastName: customer.Last_Name,
+        email: customer.Email,
+        telephone: customer.Telephone,
+        houseNo: customer.House_No,
+        addressLine1: customer.Address_Line1,
+        addressLine2: customer.Address_Line2,
+        city: customer.City,
+        zipcode: customer.Zipcode,
+        isAdmin,
+        isGuest: customer.is_Guest === 1
+      };
+  
+      return user;
+    } catch (error) {
+      console.error('Failed to fetch current user:', error);
+      return null;
     }
-}
+  }
+  
 
 
 /**
@@ -42,8 +98,8 @@ export async function getProduct(id: string): Promise<Product | null> {
     // While middleware is a viable option, verifySession can also be directly utilized within services.
     // We can use it also for checking the user role and other user data.
     // This forms part of the Data Access Layer (DAL).
-    const session = await verifySession();
-    if (!session) return null;
+    // const session = await verifySession();
+    // if (!session) return null;
 
     try {
         const response = await axios.get<Product>(`${API_URL}/products/${id}`);
@@ -286,5 +342,70 @@ export async function getQuarterlySales(year: number): Promise<QuarterlySales[] 
     catch (error) {
         console.error('Failed to fetch customer:', error);
         return null;
+    }
+
+}
+
+export async function getTopSellingProducts(startDate:string,endDate:string) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `CALL GetTopSellingProducts('${startDate}', '${endDate}')`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getTopCategories(startDate:string,endDate:string) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `call TradeSi.GetCategoryOrderStats('${startDate}', '${endDate}');`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getMonthlyProductInterest(p_id:number,year:number) {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `CALL GetMonthlyProductInterest(${p_id}, ${year});`
+        );
+        const data = JSON.parse(JSON.stringify(rows[0]));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
+    }
+}
+
+export async function getAllProductNames() {
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>(
+            `SELECT Product_ID,Title FROM TradeSi.Product;`
+        );
+        const data = JSON.parse(JSON.stringify(rows));
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error('Failed to fetch customer:', error);
+        return [];
     }
 }

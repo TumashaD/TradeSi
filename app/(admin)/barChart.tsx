@@ -43,7 +43,11 @@ const ChartBar: React.FC<ChartBar> = ({
                         <BarChart data={data} layout={layout}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey={xAxisDataKey} type={xaxisType} />
-                            <YAxis dataKey={yAxisDataKey} type={yaxisType} />
+                            <YAxis 
+                                dataKey={yAxisDataKey} 
+                                type={yaxisType} 
+                                tick={yAxisDataKey === "topProductName" ? { fontSize: 11 } : undefined}
+                            />
                             <Tooltip formatter={(value, name, props) => {
                                 if (name === "quarterlySales") {
                                     const { payload } = props;
@@ -51,6 +55,13 @@ const ChartBar: React.FC<ChartBar> = ({
                                         <div className="flex flex-col">
                                             <span>Total Orders: {payload.total_orders}</span>
                                             <span>Total Revenue: ${value}</span>
+                                        </div>
+                                    ];
+                                }
+                                if (name === "topSellingProducts") {
+                                    return [
+                                        <div className="flex flex-col">
+                                            <span>Total Sold: {value}</span>
                                         </div>
                                     ];
                                 }

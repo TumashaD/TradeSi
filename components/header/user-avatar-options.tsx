@@ -15,9 +15,25 @@ import clsx from "clsx";
 import Link from "next/link";
 import { capitalizeFirstCharOfEveryWord } from "@/lib/utils";
 import { LogoutButton } from "@/components/header/logout-button";
+import { LogIn } from "lucide-react";
 
 export default async function UserAvatarOptions() {
     const user: User | null = await getCurrentUser();
+
+    if (!user) {
+        return (
+            <Button
+            variant="outline"
+            size="lg"
+            className="flex items-center gap-2 px-6 py-2 transition-all hover:bg-slate-100 hover:scale-105"
+          >
+            <LogIn className="w-4 h-4" />
+            <Link href="/login" className="font-medium">
+              Login
+            </Link>
+          </Button>
+        );
+    }
 
     return (
         <DropdownMenu>
@@ -27,14 +43,14 @@ export default async function UserAvatarOptions() {
                     size="icon"
                     className={clsx(
                         "overflow-hidden rounded-full ",
-                        user?.isAdmin && "border-yellow-400", // Highlight the admin border
+                        user?.isAdmin && "border-yellow-400",
                     )}
                 >
                     <Image
                         src={
                             user?.isAdmin
-                                ? "/admin-avatar.png" // Admin avatar
-                                : "https://i.imgur.com/LFpAx5i.png" // Usual user avatar
+                                ? "/admin-avatar.png"
+                                : "https://i.imgur.com/LFpAx5i.png"
                         }
                         width={36}
                         height={36}
@@ -44,27 +60,24 @@ export default async function UserAvatarOptions() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-                <Link href="/profile" className="text-blue-500 hover:underline">
+                <DropdownMenuLabel>
+                    <Link href={"/profile"} passHref>
                     {capitalizeFirstCharOfEveryWord(
-                        user?.name?.firstname + " " + user?.name?.lastname,
+                        user?.firstName + " " + user?.lastName,
                     )}
-                </Link>
+                    </Link>
                 </DropdownMenuLabel>
-
-                {/* Only render the dashboard link for admins */}
-                {user?.isAdmin && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <Link href="/admin" passHref>
-                                Dashboard
-                            </Link>
-                        </DropdownMenuItem>
-                    </>
-                )}
-
-                <DropdownMenuSeparator />
+                <>
+                    {user?.isAdmin && (
+                        <>
+                            <DropdownMenuItem className="cursor-pointer">
+                                <Link href={"/admin"} passHref>
+                                    Dashboard
+                                </Link>
+                            </DropdownMenuItem>
+                        </>
+                    )}
+                </>
                 <LogoutButton />
             </DropdownMenuContent>
         </DropdownMenu>

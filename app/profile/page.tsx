@@ -3,12 +3,15 @@ import React from "react";
 import { ProfileForm } from "./ProfileForm"; // Ensure this is a client component
 import { Toaster } from "react-hot-toast"; // Import the Toaster component
 import BackButton from "@/components/admin/back-button";
-import { getCustomerById } from "../../lib/services"; // Import your server-side data fetching logic
+import { getCurrentUser, getCustomerById } from "../../lib/services"; // Import your server-side data fetching logic
+import { User } from "@/types/user";
 
 const ProfilePage = async () => {
   // Fetch customer data on the server
-  const customerData = await getCustomerById("1"); // Call your data fetching function
-
+  const user: User | null = await getCurrentUser();
+  if (!user) {
+    return null;
+  }
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Top bar container with BackButton on the left and Profile text on the right */}
@@ -22,7 +25,7 @@ const ProfilePage = async () => {
       {/* Main content container */}
       <div className="flex-grow px-8">
         {/* Pass customer data to the ProfileForm component */}
-        <ProfileForm customer={customerData} />
+        <ProfileForm user={user} />
       </div>
     </div>
   );

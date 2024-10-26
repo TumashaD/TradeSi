@@ -1,17 +1,32 @@
 "use client";
 
 import { logout } from "@/lib/actions";
-
-import {
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { toast } from "react-hot-toast";
 
 export function LogoutButton() {
+    const handleLogout = async () => {
+        try {
+            // Clear client-side storage first
+            sessionStorage.removeItem("isAdmin");
+            localStorage.removeItem("token");
+            
+            // Call server action to handle cookie removal and redirect
+            await logout();
+            
+            toast.success("Logged out successfully");
+        } catch (error) {
+            console.error("Logout error:", error);
+            toast.error("Failed to log out");
+        }
+    };
 
     return (
-        <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
-            Logout
+        <DropdownMenuItem 
+            className="text-red-600 cursor-pointer" 
+            onClick={handleLogout}
+        >
+            Sign out
         </DropdownMenuItem>
     );
 }
