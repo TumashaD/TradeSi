@@ -1,212 +1,170 @@
 "use client";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast"; // Import the toast function
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from 'lucide-react'; // Ensure you have lucide-react installed
 import { User } from "@/types/user";
-
-// Define the validation schema
-const formSchema = z.object({
-  First_Name: z.string().min(1, { message: "First name is required." }),
-  Last_Name: z.string().min(1, { message: "Last name is required." }),
-  Email: z.string().email({ message: "Invalid email address." }),
-  Password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-  Telephone: z.string().min(10, { message: "Telephone number is required." }),
-  House_No: z.string().min(1, { message: "House number is required." }),
-  Address_Line1: z.string().min(1, { message: "Address line 1 is required." }),
-  Address_Line2: z.string().optional(),
-  City: z.string().min(1, { message: "City is required." }),
-  Zipcode: z.string().min(1, { message: "Zip code is required." }),
-});
-
+import { updateCustomer } from "@/lib/services";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface ProfileFormProps {
   user: User | null; // Accept customer data as a prop
 }
 
 export function ProfileForm({ user }: ProfileFormProps) {
-  const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      First_Name: user?.firstName || "",
-      Last_Name: user?.lastName|| "",
-      Email: user?.email|| "",
-      Telephone: user?.telephone || "",
-      House_No: user?.houseNo || "",
-      Address_Line1: user?.addressLine1 || "",
-      Address_Line2: user?.addressLine2 || "",
-      City: user?.city|| "",
-      Zipcode: user?.zipcode || "",
-    },
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    First_Name: user?.firstName || "",
+    Last_Name: user?.lastName || "",
+    Email: user?.email || "",
+    Telephone: user?.telephone || "",
+    House_No: user?.houseNo || "",
+    Address_Line1: user?.addressLine1 || "",
+    Address_Line2: user?.addressLine2 || "",
+    City: user?.city || "",
+    Zipcode: user?.zipcode || "",
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    
-    // Set a flag in localStorage to track submission
-    localStorage.setItem("formSubmitted", "true");
-
-    // Refresh the page after setting the flag
-    window.location.reload();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    console.log("Form submitted", formData);
+    if (user?.id !== undefined) {
+      updateCustomer(user.id, {
+        ...user,
+        firstName: formData.First_Name,
+        lastName: formData.Last_Name,
+        email: formData.Email,
+        telephone: formData.Telephone,
+        houseNo: formData.House_No,
+        addressLine1: formData.Address_Line1,
+        addressLine2: formData.Address_Line2,
+        city: formData.City,
+        zipcode: formData.Zipcode,
+      })
+        .then(() => {
+          toast.success("Profile updated successfully");
+          // reload the page to reflect the changes
+          router.refresh();
+        })
+        .catch((error) => {
+          console.error("Error updating profile", error);
+          toast.error("Failed to update profile");
+        });
+    }
+    e.preventDefault();
+  }
+
   return (
-    <Form {...form}>
-      <div className="border p-8 rounded-md">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex justify-between space-x-12">
-          {/* Left Column */}
-          <div className="flex-1 space-y-8">
-            <FormField
-              control={form.control}
+    <form onSubmit={handleSubmit} className="border p-8 rounded-md">
+      <div className="flex justify-between space-x-12">
+        {/* Left Column */}
+        <div className="flex-1 space-y-8">
+          <div>
+            <label>First Name</label>
+            <Input
               name="First_Name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your first name" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
+              placeholder="Enter your first name"
+              value={formData.First_Name}
+              onChange={handleChange}
             />
+          </div>
 
-            <FormField
-              control={form.control}
+          <div>
+            <label>Last Name</label>
+            <Input
               name="Last_Name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your last name" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
+              placeholder="Enter your last name"
+              value={formData.Last_Name}
+              onChange={handleChange}
             />
+          </div>
 
-            <FormField
-              control={form.control}
+          <div>
+            <label>Email</label>
+            <Input
               name="Email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your email" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
+              placeholder="Enter your email"
+              value={formData.Email}
+              onChange={handleChange}
             />
-
           </div>
+        </div>
 
-          {/* Right Column */}
-          <div className="flex-1 space-y-8">
-            <FormField
-              control={form.control}
+        {/* Right Column */}
+        <div className="flex-1 space-y-8">
+          <div>
+            <label>Telephone</label>
+            <Input
               name="Telephone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telephone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your telephone number" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="House_No"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>House No</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your house number" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="Address_Line1"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address Line 1</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your address line 1" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="Address_Line2"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address Line 2 (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your address line 2" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="City"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your city" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="Zipcode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Zip Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your zip code" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
+              placeholder="Enter your telephone number"
+              value={formData.Telephone}
+              onChange={handleChange}
             />
           </div>
-        </form>
 
-        {/* Submit Button */}
-        <div className="w-full mt-4">
-          <Button type="submit" className="w-full" onClick={form.handleSubmit(onSubmit)}>Submit</Button>
+          <div>
+            <label>House No</label>
+            <Input
+              name="House_No"
+              placeholder="Enter your house number"
+              value={formData.House_No}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label>Address Line 1</label>
+            <Input
+              name="Address_Line1"
+              placeholder="Enter your address line 1"
+              value={formData.Address_Line1}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label>Address Line 2 (optional)</label>
+            <Input
+              name="Address_Line2"
+              placeholder="Enter your address line 2"
+              value={formData.Address_Line2}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label>City</label>
+            <Input
+              name="City"
+              placeholder="Enter your city"
+              value={formData.City}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label>Zip Code</label>
+            <Input
+              name="Zipcode"
+              placeholder="Enter your zip code"
+              value={formData.Zipcode}
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </div>
-    </Form>
+
+      {/* Submit Button */}
+      <div className="w-full mt-4">
+        <Button type="submit" className="w-full">Submit</Button>
+      </div>
+    </form>
   );
 }

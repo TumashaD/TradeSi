@@ -8,7 +8,6 @@ type ButtonSize =
     | "default"
     | "sm"
     | "lg"
-    | "lg-res"
     | "icon"
     | null
     | undefined;

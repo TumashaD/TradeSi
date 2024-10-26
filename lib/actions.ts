@@ -29,7 +29,25 @@ interface CustomerRow extends RowDataPacket {
     CreatedAt: Date;
     ExpiresAt: Date;
   }
+// Create a guest session
+export async function createGuestSession(): Promise<number> {
+  const db = await getDatabase();
+  const sessionId = Date.now();
+  const createdAt = new Date();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day for guest sessions
+  
+  try {
+    await db.query<[SessionRow[], any]>(
+      'INSERT INTO Session (Session_ID, CreatedAt, ExpiresAt) VALUES (?, ?, ?)',
+      [sessionId, createdAt, expiresAt]
+    );
 
+    return sessionId;
+  } catch (error) {
+    console.error('Error creating guest session:', error);
+    throw error;
+  }
+}
 
 // Create an authenticated session
 async function createSession(customerId: number): Promise<string> {

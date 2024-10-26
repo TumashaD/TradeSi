@@ -142,6 +142,58 @@ export async function createCustomer(customerData: User): Promise<{ success: boo
         };
     }
 }
+
+export async function updateCustomer(
+    customerId: number,
+    customerData: User
+): Promise<{ success: boolean; message: string }> {
+    try {
+        const connection = await getDatabase();
+
+
+        // Call the stored procedure
+        const query = `CALL UpdateCustomer(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+        const values = [
+            customerId,
+            customerData.isGuest,
+            customerData.firstName,
+            customerData.lastName,
+            customerData.email,
+            customerData.telephone,
+            customerData.houseNo,
+            customerData.addressLine1,
+            customerData.addressLine2,
+            customerData.city,
+            customerData.zipcode
+        ];
+
+        await connection.query(query, values);
+
+        return {
+            success: true,
+            message: 'Customer updated successfully'
+        };
+
+    } catch (error: any) {
+        // Handle specific MySQL errors
+        if (error.code === 'ER_DUP_ENTRY') {
+            return {
+                success: false,
+                message: 'Email address already exists'
+            };
+        }
+
+        // Log the error for debugging
+        console.error('Failed to update customer:', error);
+        
+        return {
+            success: false,
+            message: 'Failed to update customer'
+        };
+    }
+}
+
   
 
 
