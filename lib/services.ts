@@ -7,6 +7,8 @@ import axios from "axios";
 import getDatabase from '@/lib/db';
 import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
 import { RowDataPacket } from "mysql2";
+import { hashPassword } from '@/lib/utils';
+
 const API_URL = process.env.API_URL;
   
   interface CustomerRow extends RowDataPacket {
@@ -171,6 +173,62 @@ export async function getCategories(): Promise<string[]> {
     } catch (error) {
         console.error(`Failed to fetch products:`, error);
         return [];
+    }
+}
+
+export async function createCustomer(customerData: User): Promise<{ success: boolean; message: string; customerId?: number }> {
+    try {
+        const connection = await getDatabase();
+
+        // Hash the password before storing it in the database
+        const hashedPassword = await hashPassword(customerData.password);
+
+        // SQL query with parameterized values for security
+        const query = `
+            INSERT INTO Customer (
+                is_Guest, Password, First_Name, Last_Name, 
+                Email, Telephone, House_No, Address_Line1, 
+                Address_Line2, City, Zipcode
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const values = [
+            customerData.isGuest,
+            hashedPassword,
+            customerData.firstName,
+            customerData.lastName,
+            customerData.email,
+            customerData.telephone,
+            customerData.houseNo,
+            customerData.addressLine1,
+            customerData.addressLine2,
+            customerData.city,
+            customerData.zipcode
+
+        ];
+
+        const [result] = await connection.query<any>(query, values);
+
+        return {
+            success: true,
+            message: 'Customer created successfully',
+            customerId: result.insertId
+        };
+
+    } catch (error: any) {
+        // Handle specific MySQL errors
+        if (error.code === 'ER_DUP_ENTRY') {
+            return {
+                success: false,
+                message: 'Email address already exists'
+            };
+        }
+
+        console.error('Failed to create customer:', error);
+        return {
+            success: false,
+            message: 'Failed to create customer'
+        };
     }
 }
 

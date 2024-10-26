@@ -29,7 +29,7 @@ export function ShopCartDrawer() {
     const decQty = useStore.use.decQty();
     const calculateTotalPrice = () => {
         return products.reduce((total, product) => {
-            return total + product.price * product.quantity;
+            return total + product.base_price * product.quantity;
         }, 0);
     };
 
@@ -76,16 +76,16 @@ export function ShopCartDrawer() {
                     <div className="space-y-2">
                         {products.map((product) => (
                             <article
-                                key={product.id}
+                                key={product.product_id}
                                 className="group flex h-full max-h-full  w-full animate-fadeIn flex-col space-y-2 rounded-md border-2 bg-background-secondary p-2  shadow-sm transition-opacity dark:border-0"
                             >
                                 <Link
-                                    href={`/products/${product.id}`}
+                                    href={`/products/${product.product_id}`}
                                     passHref
                                     className="flex max-h-36 flex-1 rounded bg-[#FEFAF6] py-4 dark:bg-white"
                                 >
                                     <Image
-                                        src={product.image}
+                                        src={product.imageURL}
                                         width={300}
                                         height={300}
                                         alt={product.title}
@@ -94,7 +94,7 @@ export function ShopCartDrawer() {
                                 </Link>
                                 <div className="flex flex-1 flex-col justify-between gap-2">
                                     <Link
-                                        href={`/products/${product.id}`}
+                                        href={`/products/${product.product_id}`}
                                         passHref
                                         className="line-clamp-2 text-sm font-semibold"
                                     >
@@ -111,7 +111,7 @@ export function ShopCartDrawer() {
 
                                     <div className="flex items-baseline justify-between">
                                         <p className="text-base font-bold leading-none">
-                                            ${product.price}
+                                            ${product.base_price.toFixed(2)}
                                         </p>
                                         <div className="flex items-center justify-between gap-1">
                                             <Button
@@ -119,7 +119,7 @@ export function ShopCartDrawer() {
                                                 className="h-5 w-5 rounded-full bg-[#DAC0A3] p-0 dark:bg-background "
                                                 size={"sm"}
                                                 onClick={() =>
-                                                    decQty(product.id, product)
+                                                    decQty(product.product_id, product)
                                                 }
                                                 disabled={!product.quantity}
                                             >
@@ -131,14 +131,14 @@ export function ShopCartDrawer() {
                                                 className="mr-4 h-5 w-5 rounded-full bg-[#DAC0A3] p-0  dark:bg-background"
                                                 size={"sm"}
                                                 onClick={() =>
-                                                    incQty(product.id, product)
+                                                    incQty(product.product_id, product)
                                                 }
                                             >
                                                 <Plus className="h-4 w-4" />
                                             </Button>
                                             <Button
                                                 onClick={() =>
-                                                    removeProduct(product.id)
+                                                    removeProduct(product.product_id)
                                                 }
                                                 size="icon"
                                                 variant="destructive"

@@ -4,6 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createCustomer } from "@/lib/services";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Use router to navigate programmatically
@@ -18,39 +19,47 @@ const SignUp = () => {
     event.preventDefault();
     setPending(true);
 
-    const formData = new FormData(event.target as HTMLFormElement);
-    const data = Object.fromEntries(formData.entries());
-
-    // Check for password match
-    if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match.");
-      setPending(false);
-      return;
-    }
-
     try {
-      const response = await fetch("/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+        const formData = new FormData(event.target as HTMLFormElement);
+        const data = Object.fromEntries(formData.entries());
 
-      const result = await response.json();
+        // Check for password match
+        if (data.password !== data.confirmPassword) {
+            toast.error("Passwords do not match.");
+            return;
+        }
 
-      if (!response.ok) {
-        throw new Error(result.error || "Something went wrong.");
-      }
+        // Prepare customer data
+        const customerData = {
+          firstName: data.firstname as string,
+          lastName: data.lastname as string,
+          email: data.email as string,
+          telephone: data.telephone as string,
+          houseNo: data.houseNumber as string,
+          addressLine1: data.addressLine1 as string,
+          addressLine2: data.addressLine2 as string,
+          city: data.city as string,
+          zipcode: data.zipcode as string,
+          password: data.password as string,
+          isAdmin: false, // Assuming default value
+          isGuest: false, // Assuming default value
+        };
 
-      toast.success(result.message);
-      router.push("/login"); // Redirect to login after successful signup
+        const result = await createCustomer(customerData);
+
+        if (result.success) {
+            toast.success("Account created successfully!");
+            router.push('/login');
+        } else {
+            toast.error(result.message);
+        }
     } catch (error) {
-      toast.error((error as Error).message);
+        toast.error("Failed to create account. Please try again.");
+        console.error(error);
     } finally {
-      setPending(false);
+        setPending(false);
     }
-  };
+};
 
   return (
     <div className="container relative h-[100dvh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -115,7 +124,7 @@ const SignUp = () => {
 
               {/* Address */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">Address</h3>
+                <h3 className="text-lg font-semibold mb-4 mt-4">Address</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     id="houseNumber"
@@ -157,7 +166,7 @@ const SignUp = () => {
 
               {/* Password */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold mb-4">Password</h3>
+                <h3 className="text-lg font-semibold mb-4 mt-4">Password</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     id="password"
@@ -191,7 +200,7 @@ const SignUp = () => {
             </form>
           </div>
           <Link href="/login" className="text-center">
-            Already have an account? Sign in
+            Already have an account? Log in
           </Link>
         </div>
       </div>

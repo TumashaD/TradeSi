@@ -7,11 +7,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 const API_URL = process.env.API_URL;
-import { compare, hash } from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cache } from 'react';
 import { RowDataPacket } from 'mysql2';
 import getDatabase from './db';
+import { verifyPassword } from "./utils";
 
 // Schema for login validation
 
@@ -72,9 +72,9 @@ async function createSession(customerId: number): Promise<string> {
 
 // Login function
 export async function login(formData: FormData) {
-    const db = await getDatabase();
-    
-    try {
+  
+  try {
+      const db = await getDatabase();
       const validatedFields = loginSchema.safeParse({
         email: formData.get("email"),
         password: formData.get("password"),
@@ -90,11 +90,20 @@ export async function login(formData: FormData) {
   
       // Get customer from database
       const [rows] = await db.query<[CustomerRow[], any]>(
-        'Select * FROM TradeSi.Customer where Email=? and Password=?',
-        [email, password]
+        'SELECT Customer_ID, Password FROM Customer WHERE Email = ?',
+        [email]
       );
       const customer = JSON.parse(JSON.stringify(rows[0]));
       console.log(customer);
+
+      const passwordMatch = await verifyPassword(password, customer.Password);
+
+      if (!passwordMatch) {
+        return {
+            success: false,
+            message: 'Invalid email or password'
+        };
+    }
 
       // Check if customer exists
         if (customer === undefined) {
