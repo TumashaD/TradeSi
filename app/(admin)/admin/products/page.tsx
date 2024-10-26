@@ -7,6 +7,7 @@ import {ProductsClient} from "@/components/admin/admin-products";
 async function AdminProducts({ searchParams }: ProductPageQueryParams) {
     const products: Product[] = await getProducts(
         searchParams.category
+        
         // searchParams.query,
     );
     return (

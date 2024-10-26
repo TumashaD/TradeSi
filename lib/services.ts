@@ -135,8 +135,6 @@ export async function getProducts(
                 "call viewCategoryProducts(?)", [category]
             );
             const data = JSON.parse(JSON.stringify(rows));
-            console.log("category products");
-            console.log(data);
             return data;
         } else {
             const [rows] = await connection.query<any>(
