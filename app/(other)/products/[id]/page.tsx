@@ -7,14 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchProductData, ProductData } from "../../../../lib/services";
+import { fetchProductData, ProductData, addCartItem, getCustomerCart } from "../../../../lib/services";
 import { useStore } from "@/store/store";
+
 
 export default function ProductPage() {
     const { id } = useParams(); 
     const productId = Array.isArray(id) ? id[0] : id;
     const [productData, setProductData] = useState<ProductData[] | null>(null);
-    const [price, setPrice] = useState<string | number>(0);
+    const [price, setPrice] = useState(0);
     const [stock, setStock] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -97,15 +98,27 @@ export default function ProductPage() {
     
         // If no match is found, set defaults for unavailable combination
         setSelectedItemId(null);
-        setPrice("Sorry, try again later 😔");
+        setPrice(-1);
         setStock(0);
     };
     
     // When Add to Cart is clicked, log the selected item_id and quantity if available
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (selectedItemId) {
             console.log("Selected item_id:", selectedItemId);
             console.log("Quantity:", quantity);
+
+            const TotalPrice = (price * quantity).toFixed(2);
+            console.log("Total Price:", TotalPrice);
+
+            const customerCart: number | null = await getCustomerCart(1);
+            console.log("Customer Cart:", customerCart);
+            if (customerCart) {
+                await addCartItem(customerCart, selectedItemId, quantity, parseFloat(TotalPrice));
+            } else {
+                console.error("No cart found");
+            }
+
             // const addProduct = useStore().addProduct(selectedItemId, quantity);
             toast({
                 title: "Added to cart",
@@ -145,7 +158,9 @@ export default function ProductPage() {
 
                 <div className="space-y-6">
                     <h1 className="text-3xl font-bold">{productData[0].Title}</h1>
-                    <p className="text-2xl font-semibold">{typeof price === "number" ? `$${price}` : price}</p>
+                    <p className="text-2xl font-semibold">
+                        {price === -1 ? "Not available, Try again later 😔" : typeof price === "number" ? `$${price}` : price}
+                    </p>
 
                     {attributeArray.map((attributeType) => (
                         <div key={attributeType}>

@@ -12,36 +12,61 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { Loader } from "lucide-react";
 import router from "next/router";
 
+
+// Assuming these functions exist
+import { Cart, getCustomerCart, getCartItems, deleteCartItem, getCartItemsWithDetails } from "@/lib/services"; // Adjust import as necessary
+
 export function ShopCartDrawer() {
     const router = useRouter();
-    const [isLoading,setIsLoading] = useState(false);
-    const products = useStore().products;
-    const removeProduct = useStore().removeProduct;
-    const incQty = useStore.use.incQty();
-    const decQty = useStore.use.decQty();
-    const calculateTotalPrice = () => {
-        return products.reduce((total, product) => {
-            return total + product.price * product.quantity;
-        }, 0);
-    };
+    const [isLoading, setIsLoading] = useState(false);
+    const [itemsInCart, setItemsInCart] = useState<any[]>([]);
+    const [cartId, setCartId] = useState<number>();
+    // Define the type for your customer cart response
+    // Fetch cart items when the component mounts
+    useEffect(() => {
+        const fetchCartData = async () => {
+            try {
+                const customerCart: number = await getCustomerCart(1);
+                if (customerCart) {
+                    const cartId = customerCart; 
+                    setCartId(cartId);
+                } else {
+                    console.log("No cart found");
+                }
+                if (customerCart){
+                    const cartItems = await getCartItemsWithDetails(customerCart);
+                    console.log("Cart items:", cartItems);
+                    setItemsInCart(cartItems);
+                }
+                
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
 
-    const onCheckout = () => {
+        fetchCartData();
+    }, []);
+
+    const handleRemoveProduct = async (itemId: number) => {
         setIsLoading(true);
-        // Store products in local storage
-        localStorage.setItem("cartProducts", JSON.stringify(products));
-        localStorage.setItem("totalPrice", calculateTotalPrice().toFixed(2));
-        setTimeout(() => {
+        try {
+            await deleteCartItem(cartId ?? 0, itemId);
+            toast.success("Product removed from cart");
+            // Reload the page to reflect changes
+            await getCartItems(1); // Re-fetch cart items after removal
+        } catch (error) {
+            toast.error("Failed to remove product");
+        } finally {
             setIsLoading(false);
-            router.push(`/checkout`);
-        }, 2000);
+        }
     };
 
     return (
@@ -55,9 +80,9 @@ export function ShopCartDrawer() {
                     }),
                 )}
             >
-                {products.length > 0 && (
+                {itemsInCart.length > 0 && (
                     <span className="absolute right-0 top-0 -mr-1 -mt-2 flex h-5 w-5 items-center justify-center rounded-full  bg-red-500 text-xs text-white">
-                    {products.length}
+                    {itemsInCart.length}
                 </span>
                 )}
                 <ShoppingBag />
@@ -74,97 +99,63 @@ export function ShopCartDrawer() {
                         </SheetDescription>
                     </SheetHeader>
                     <div className="space-y-2">
-                        {products.map((product) => (
-                            <article
-                                key={product.id}
-                                className="group flex h-full max-h-full  w-full animate-fadeIn flex-col space-y-2 rounded-md border-2 bg-background-secondary p-2  shadow-sm transition-opacity dark:border-0"
-                            >
-                                <Link
-                                    href={`/products/${product.id}`}
-                                    passHref
-                                    className="flex max-h-36 flex-1 rounded bg-[#FEFAF6] py-4 dark:bg-white"
+                        {itemsInCart.length === 0 ? (
+                            <p>No products in the cart</p>
+                        ) : (
+                            itemsInCart.map((item) => (
+                                <article
+                                    key={item.Item_ID}
+                                    className="group flex h-full max-h-full w-full animate-fadeIn flex-col space-y-2 rounded-md border-2 bg-background-secondary p-2 shadow-sm transition-opacity dark:border-0"
                                 >
-                                    <Image
-                                        src={product.image}
-                                        width={300}
-                                        height={300}
-                                        alt={product.title}
-                                        className="h-26  mx-auto w-20 object-contain transition duration-300 ease-in-out group-hover:scale-105"
-                                    />
-                                </Link>
-                                <div className="flex flex-1 flex-col justify-between gap-2">
                                     <Link
-                                        href={`/products/${product.id}`}
+                                        href={`/products/${item.Product_ID}`} // Assuming Item_ID links to product
                                         passHref
-                                        className="line-clamp-2 text-sm font-semibold"
+                                        className="flex max-h-36 flex-1 rounded bg-[#FEFAF6] py-4 dark:bg-white"
                                     >
-                                        <abbr
-                                            title={product.title}
-                                            className="no-underline"
-                                        >
-                                            {product.title}
-                                        </abbr>
+                                        <Image
+                                            src={item.imageURL} // You'll need to fetch this from the product details
+                                            width={300}
+                                            height={300}
+                                            alt={item.Title}
+                                            className="h-26 mx-auto w-20 object-contain transition duration-300 ease-in-out group-hover:scale-105"
+                                        />
                                     </Link>
-                                    <span className="w-fit rounded-md bg-[#DAC0A3] p-2 text-xs font-medium capitalize dark:bg-background">
-                                        {product.category}
-                                    </span>
-
-                                    <div className="flex items-baseline justify-between">
+                                    <div className="flex flex-1 flex-col justify-between gap-2">
+                                        <Link
+                                            href={`/products/${item.Product_ID}`} // Assuming Item_ID links to product
+                                            passHref
+                                            className="line-clamp-2 text-sm font-semibold"
+                                        >
+                                            <abbr
+                                                title={item.Title} // Assuming title is available
+                                                className="no-underline"
+                                            >
+                                                {item.Title} {/* Assuming title is available */}
+                                            </abbr>
+                                        </Link>
                                         <p className="text-base font-bold leading-none">
-                                            ${product.price}
+                                            ${item.Price} {/* Assuming Price is available */}
                                         </p>
-                                        <div className="flex items-center justify-between gap-1">
-                                            <Button
-                                                variant="outline"
-                                                className="h-5 w-5 rounded-full bg-[#DAC0A3] p-0 dark:bg-background "
-                                                size={"sm"}
-                                                onClick={() =>
-                                                    decQty(product.id, product)
-                                                }
-                                                disabled={!product.quantity}
-                                            >
-                                                <Minus className="h-4 w-4" />
-                                            </Button>
-                                            <span>{product.quantity || 0}</span>
-                                            <Button
-                                                variant="outline"
-                                                className="mr-4 h-5 w-5 rounded-full bg-[#DAC0A3] p-0  dark:bg-background"
-                                                size={"sm"}
-                                                onClick={() =>
-                                                    incQty(product.id, product)
-                                                }
-                                            >
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                onClick={() =>
-                                                    removeProduct(product.id)
-                                                }
-                                                size="icon"
-                                                variant="destructive"
-                                            >
-                                                <Trash2 size={"23"} />
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            onClick={() => handleRemoveProduct(item.Item_ID)}
+                                            size="icon"
+                                            variant="destructive"
+                                        >
+                                            <Trash2 size={"23"} />
+                                        </Button>
                                     </div>
-                                </div>
-                            </article>
-                        ))}
+                                </article>
+                            ))
+                        )}
                     </div>
                 </div>
 
                 <div className="mt-4 flex w-full flex-col justify-center gap-3">
-                    <div className="flex justify-between">
-                        <h1 className="text-xl font-bold">Total</h1>
-                        <h2 className="text-lg font-bold">
-                            ${calculateTotalPrice().toFixed(2)}
-                        </h2>
-                    </div>
                     <Button
                         disabled={isLoading}
                         variant="default"
                         size="lg"
-                        onClick={onCheckout}
+                        onClick={() => router.push(`/checkout`)} // Checkout button
                     >
                         {isLoading ? "Processing..." : "Checkout"}
                         {isLoading && <Loader className="animate-spin" />}
