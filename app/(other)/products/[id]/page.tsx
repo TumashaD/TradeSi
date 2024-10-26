@@ -16,18 +16,16 @@ export default function ProductPage() {
     const productId = Array.isArray(id) ? id[0] : id; // Ensure productId is a string
     const [productData, setProductData] = useState<ProductData[] | null>(null);
     const [Field, setName] = useState("");
-    const [selectedVariant, setSelectedVariant] = useState("");
-    const [selectedAttribute, setSelectedAttribute] = useState("");
     const [price, setPrice] = useState(0);
     const [stock, setStock] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
-    const [variantArray, setVariantArray] = useState<string[]>([]);
     const [attributeArray, setAttributeArray] = useState<string[]>([]);
-    const [variantMap, setVariantMap] = useState<Map<string, string[]>>(new Map());
     const [attributeMap, setAttributeMap] = useState<Map<string, string[]>>(new Map());
+
+    const [selectedAttributeMap, setSelectedAttributeMap] = useState<Map<string, string>>(new Map());
 
     // Fetch product data when the component mounts or when the product ID changes
     useEffect(() => {
@@ -37,12 +35,21 @@ export default function ProductPage() {
                 try {
                     const ProductdataArray = await fetchProductData(productId);
                     if (ProductdataArray && ProductdataArray.length > 0) {
-                        setProductData(ProductdataArray[0]); // This sets the first array of objects to productData
-                        // Set default values from the first row of the data
+                        // Iterate through productData to populate variantMap and attributeMap
+                        ProductdataArray[0].forEach(row => {
+                            // Handle attribute types and names
+                            if (row.Attribute_Type_Name && row.value) {
+                                if (!attributeMap.has(row.Attribute_Type_Name)) {
+                                    attributeMap.set(row.Attribute_Type_Name, []); // Create a new array for the attribute type if it doesn't exist
+                                }
+                                const attributeNames = attributeMap.get(row.Attribute_Type_Name);
+                                if (attributeNames && !attributeNames.includes(row.value)) {
+                                    attributeNames.push(row.value); // Add the attribute name if not already present (no duplicates)
+                                }
+                            }
+                        });
                         const defaultRow = ProductdataArray[0][0]; // Access the first object in the nested array
                         if (defaultRow) {
-                            // setSelectedVariant(defaultRow.Variant_Name || ""); // Fallback to an empty string if null
-                            setSelectedAttribute(defaultRow.Attribute_Type_Name || ""); // Fallback to an empty string if null
                             setPrice(parseFloat(defaultRow.Base_price) + parseFloat(defaultRow.price_increment));
                             setStock(defaultRow.quantity || 0); // Fallback to 0 if null
                             setName(defaultRow.Title || "");
@@ -51,42 +58,13 @@ export default function ProductPage() {
                             // let variants: string[] = [];
                             let attributes: string[] = [];
                             
-                            ProductdataArray[0].forEach(row => {
-                                // if (row.Variant_Type && !variants.includes(row.Variant_Type)) {
-                                //     variants.push(row.Variant_Type); // Add variant if not already present
-                                // }
+                            ProductdataArray[0].forEach(row => { 
                                 if (row.Attribute_Type_Name && !attributes.includes(row.Attribute_Type_Name)) {
                                     attributes.push(row.Attribute_Type_Name); // Add attribute if not already present
                                 }
                             });
 
-                            const variantMap = new Map<string, string[]>();  // Map to store variant type -> array of variant names
                             const attributeMap = new Map<string, string[]>();  // Map to store attribute type -> array of attribute names
-
-                            // Iterate through productData to populate variantMap and attributeMap
-                            ProductdataArray[0].forEach(row => {
-                                // // Handle variant types and names
-                                // if (row.Variant_Type && row.Variant_Name) {
-                                //     if (!variantMap.has(row.Variant_Type)) {
-                                //         variantMap.set(row.Variant_Type, []); // Create a new array for the variant type if it doesn't exist
-                                //     }
-                                //     const variantNames = variantMap.get(row.Variant_Type);
-                                //     if (variantNames && !variantNames.includes(row.Variant_Name)) {
-                                //         variantNames.push(row.Variant_Name); // Add the variant name if not already present (no duplicates)
-                                //     }
-                                // }
-
-                                // Handle attribute types and names
-                                if (row.Attribute_Type_Name && row.value) {
-                                    if (!attributeMap.has(row.Attribute_Type_Name)) {
-                                        attributeMap.set(row.Attribute_Type, []); // Create a new array for the attribute type if it doesn't exist
-                                    }
-                                    const attributeNames = attributeMap.get(row.Attribute_Type);
-                                    if (attributeNames && !attributeNames.includes(row.value)) {
-                                        attributeNames.push(row.value); // Add the attribute name if not already present (no duplicates)
-                                    }
-                                }
-                            });
 
                             // setVariantArray(variants); // Set the unique variants
                             setAttributeArray(attributes); // Set the unique attributes
@@ -104,21 +82,10 @@ export default function ProductPage() {
         }
     }, [productId]);
 
-    // // Handle variant selection change
-    // const handleVariantChange = (variant: string) => {
-    //     const selectedData = productData?.find(data => data.Variant_Name === variant && data.Attribute_Name === selectedAttribute);
-    //     if (selectedData) {
-    //         setSelectedVariant(variant);
-    //         setPrice(selectedData.Price);
-    //         setStock(selectedData.Quantity);
-    //     }
-    // };
-
     // Handle attribute selection change
     const handleAttributeChange = (attribute: string) => {
-        const selectedData = productData?.find(data => data.Attribute_Name === attribute && data.Variant_Name === selectedVariant);
+        const selectedData = productData?.find(data => data.Attribute_Name === attribute);
         if (selectedData) {
-            setSelectedAttribute(attribute);
             setPrice(selectedData.Price);
             setStock(selectedData.Quantity);
         }
@@ -127,7 +94,6 @@ export default function ProductPage() {
     // Handle adding to cart
     const handleAddToCart = () => {
         // console.log("selectedVariant", selectedVariant);
-        console.log("selectedAttribute", selectedAttribute);
 
         toast({
             title: "Added to cart",
@@ -166,30 +132,14 @@ export default function ProductPage() {
                     <h1 className="text-3xl font-bold">{productData[0].Title}</h1>
                     <p className="text-2xl font-semibold">{price}</p>
 
-                    {/* Variant Selection
-                    {variantArray.map((variantType) => (
-                        <div key={variantType}>
-                            <h2 className="text-lg font-semibold mb-2">{variantType}</h2>
-                            <Select value={selectedVariant} onValueChange={handleVariantChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {variantMap.get(variantType)?.map((variantName) => (
-                                        <SelectItem key={variantName} value={variantName}>
-                                            {variantName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ))} */}
-
                     {/* Attribute Selection */}
                     {attributeArray.map((attributeType) => (
                         <div key={attributeType}>
                             <h2 className="text-lg font-semibold mb-2">{attributeType}</h2>
-                            <Select value={selectedAttribute} onValueChange={handleAttributeChange}>
+                            <Select 
+                                value={selectedAttributeMap.get(attributeType)} // Accessing the selected value for the specific attributeType
+                                onValueChange={(value) => handleAttributeChange(attributeType, value)} // Passing attributeType to handle change
+                                >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
