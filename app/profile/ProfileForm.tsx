@@ -45,7 +45,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
       First_Name: user?.firstName || "",
       Last_Name: user?.lastName|| "",
       Email: user?.email|| "",
-      Password: user?.password, // Consider removing default password in production
       Telephone: user?.telephone || "",
       House_No: user?.houseNo || "",
       Address_Line1: user?.addressLine1 || "",
@@ -113,32 +112,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="Password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        placeholder="Enter your password"
-                        {...field}
-                        type={showPassword ? "text" : "password"} // Toggle input type
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
-                      >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                      </button>
-                    </div>
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
           </div>
 
           {/* Right Column */}

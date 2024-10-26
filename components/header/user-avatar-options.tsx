@@ -50,7 +50,7 @@ export default async function UserAvatarOptions() {
                         src={
                             user?.isAdmin
                                 ? "/admin-avatar.png"
-                                : "https://i.imgur.com/LFpAx5i.png"
+                                : "/user-avatar.png"
                         }
                         width={36}
                         height={36}
