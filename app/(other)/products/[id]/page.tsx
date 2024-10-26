@@ -4,19 +4,17 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchProductData, ProductData } from "../../../../lib/services";
+import { useStore } from "@/store/store";
 
 export default function ProductPage() {
-    const { id } = useParams(); // Extract the productId from URL params
-    const productId = Array.isArray(id) ? id[0] : id; // Ensure productId is a string
+    const { id } = useParams(); 
+    const productId = Array.isArray(id) ? id[0] : id;
     const [productData, setProductData] = useState<ProductData[] | null>(null);
-    const [Field, setName] = useState("");
-    const [price, setPrice] = useState(0);
+    const [price, setPrice] = useState<string | number>(0);
     const [stock, setStock] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -24,10 +22,9 @@ export default function ProductPage() {
 
     const [attributeArray, setAttributeArray] = useState<string[]>([]);
     const [attributeMap, setAttributeMap] = useState<Map<string, string[]>>(new Map());
+    const [selectedAttributes, setSelectedAttributes] = useState<Map<string, string>>(new Map());
+    const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 
-    const [selectedAttributeMap, setSelectedAttributeMap] = useState<Map<string, string>>(new Map());
-
-    // Fetch product data when the component mounts or when the product ID changes
     useEffect(() => {
         if (productId) {
             const fetchData = async () => {
@@ -35,42 +32,29 @@ export default function ProductPage() {
                 try {
                     const ProductdataArray = await fetchProductData(productId);
                     if (ProductdataArray && ProductdataArray.length > 0) {
-                        // Iterate through productData to populate variantMap and attributeMap
+                        const newAttributeMap = new Map(attributeMap);
                         ProductdataArray[0].forEach(row => {
-                            // Handle attribute types and names
                             if (row.Attribute_Type_Name && row.value) {
-                                if (!attributeMap.has(row.Attribute_Type_Name)) {
-                                    attributeMap.set(row.Attribute_Type_Name, []); // Create a new array for the attribute type if it doesn't exist
+                                if (!newAttributeMap.has(row.Attribute_Type_Name)) {
+                                    newAttributeMap.set(row.Attribute_Type_Name, []);
                                 }
-                                const attributeNames = attributeMap.get(row.Attribute_Type_Name);
+                                const attributeNames = newAttributeMap.get(row.Attribute_Type_Name);
                                 if (attributeNames && !attributeNames.includes(row.value)) {
-                                    attributeNames.push(row.value); // Add the attribute name if not already present (no duplicates)
+                                    attributeNames.push(row.value);
                                 }
                             }
                         });
-                        const defaultRow = ProductdataArray[0][0]; // Access the first object in the nested array
+
+                        const defaultRow = ProductdataArray[0][0];
                         if (defaultRow) {
+                            setSelectedItemId(defaultRow.item_id);
                             setPrice(parseFloat(defaultRow.Base_price) + parseFloat(defaultRow.price_increment));
-                            setStock(defaultRow.quantity || 0); // Fallback to 0 if null
-                            setName(defaultRow.Title || "");
-
-                            // Collect unique variants and attributes
-                            // let variants: string[] = [];
-                            let attributes: string[] = [];
-                            
-                            ProductdataArray[0].forEach(row => { 
-                                if (row.Attribute_Type_Name && !attributes.includes(row.Attribute_Type_Name)) {
-                                    attributes.push(row.Attribute_Type_Name); // Add attribute if not already present
-                                }
-                            });
-
-                            const attributeMap = new Map<string, string[]>();  // Map to store attribute type -> array of attribute names
-
-                            // setVariantArray(variants); // Set the unique variants
-                            setAttributeArray(attributes); // Set the unique attributes
-                            // setVariantMap(variantMap);
-                            setAttributeMap(attributeMap);
+                            setStock(defaultRow.quantity || 0);
+                            setAttributeArray([...newAttributeMap.keys()]);
                         }
+
+                        setAttributeMap(newAttributeMap);
+                        setProductData(ProductdataArray[0]);
                     }
                 } catch (error) {
                     console.error("Error fetching product data:", error);
@@ -82,29 +66,62 @@ export default function ProductPage() {
         }
     }, [productId]);
 
-    // Handle attribute selection change
-    const handleAttributeChange = (attribute: string) => {
-        const selectedData = productData?.find(data => data.Attribute_Name === attribute);
-        if (selectedData) {
-            setPrice(selectedData.Price);
-            setStock(selectedData.Quantity);
+    const handleAttributeChange = (attributeType: string, value: string) => {
+        // Update the selected attributes map with the new selection
+        selectedAttributes.set(attributeType, value);
+        setSelectedAttributes(new Map(selectedAttributes)); // Trigger re-render
+    
+        // Get the item IDs that match each attribute in selectedAttributes
+        const matchingItemIds = Array.from(selectedAttributes.entries()).map(([attrType, attrValue]) =>
+            productData
+                ?.filter((row) => row.Attribute_Type_Name === attrType && row.value === attrValue)
+                .map((row) => row.item_id)
+        );
+    
+        // Find the common item_id across all attributes
+        const commonItemIds = matchingItemIds.reduce<number[]>((commonIds, ids) => {
+            if (!ids) return commonIds; // Check if ids is undefined or empty
+            return commonIds.filter((id) => ids.includes(id));
+        }, matchingItemIds[0] || []);
+    
+        // Check if there’s a matching item with a common item_id
+        if (commonItemIds.length > 0) { // Check if commonItemIds is not empty
+            const matchedItem = productData?.find((row) => row.item_id === commonItemIds[0]);
+            if (matchedItem) {
+                setSelectedItemId(matchedItem.item_id);
+                setPrice(parseFloat(matchedItem.Base_price) + parseFloat(matchedItem.price_increment));
+                setStock(matchedItem.quantity || 0);
+                return;
+            }
         }
+    
+        // If no match is found, set defaults for unavailable combination
+        setSelectedItemId(null);
+        setPrice("Sorry, try again later 😔");
+        setStock(0);
     };
-
-    // Handle adding to cart
+    
+    // When Add to Cart is clicked, log the selected item_id and quantity if available
     const handleAddToCart = () => {
-        // console.log("selectedVariant", selectedVariant);
-
-        toast({
-            title: "Added to cart",
-            description: `${quantity} ${productData ? productData[0].Title : ''} added to your cart.`,
-        });
+        if (selectedItemId) {
+            console.log("Selected item_id:", selectedItemId);
+            console.log("Quantity:", quantity);
+            // const addProduct = useStore().addProduct(selectedItemId, quantity);
+            toast({
+                title: "Added to cart",
+                description: `${quantity} ${productData ? productData[0].Title : ''} added to your cart.`,
+            });
+        } else {
+            toast({
+                title: "Cannot add to cart",
+                description: "Please select a valid combination.",
+            });
+        }
     };
 
     if (loading || !productData) {
         return (
             <div className="container mx-auto px-4 py-8">
-                {/* Loading Skeleton */}
                 <SkeletonLoading />
             </div>
         );
@@ -113,7 +130,6 @@ export default function ProductPage() {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 mb-12">
-                {/* Product Image and Description */}
                 <div className="space-y-4">
                     <img
                         src={productData[0].imageURL || "/placeholder.svg"}
@@ -127,18 +143,16 @@ export default function ProductPage() {
                     </div>
                 </div>
 
-                {/* Product Details */}
                 <div className="space-y-6">
                     <h1 className="text-3xl font-bold">{productData[0].Title}</h1>
-                    <p className="text-2xl font-semibold">{price}</p>
+                    <p className="text-2xl font-semibold">{typeof price === "number" ? `$${price}` : price}</p>
 
-                    {/* Attribute Selection */}
                     {attributeArray.map((attributeType) => (
                         <div key={attributeType}>
                             <h2 className="text-lg font-semibold mb-2">{attributeType}</h2>
                             <Select 
-                                value={selectedAttributeMap.get(attributeType)} // Accessing the selected value for the specific attributeType
-                                onValueChange={(value) => handleAttributeChange(attributeType, value)} // Passing attributeType to handle change
+                                value={selectedAttributes.get(attributeType)}
+                                onValueChange={(value) => handleAttributeChange(attributeType, value)}
                                 >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
@@ -154,7 +168,6 @@ export default function ProductPage() {
                         </div>
                     ))}
 
-                    {/* Quantity */}
                     <div>
                         <h2 className="text-lg font-semibold mb-2">Quantity</h2>
                         <Input
@@ -167,7 +180,6 @@ export default function ProductPage() {
                         />
                     </div>
 
-                    {/* Stock Status */}
                     <div className="text-sm">
                         {stock > 0 ? (
                             <span className="text-green-600">In stock: {stock} available</span>
@@ -176,11 +188,10 @@ export default function ProductPage() {
                         )}
                     </div>
 
-                    {/* Add to Cart Button */}
                     <Button
-                      onClick={handleAddToCart}
-                      disabled={stock === 0}
-                      className="w-full"
+                        onClick={handleAddToCart}
+                        disabled={stock === 0}
+                        className="w-full"
                     >
                         {stock === 0 ? "Out of Stock" : "Add to Cart"}
                     </Button>
@@ -190,25 +201,24 @@ export default function ProductPage() {
     );
 }
 
-// Loading skeleton component
 function SkeletonLoading() {
-  return (
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="space-y-4">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-8 w-1/2" />
-              <Skeleton className="h-6 w-full" />
-          </div>
-          <div className="space-y-6">
-              <Skeleton className="h-8 w-1/2" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-8 w-20" />
-              <Skeleton className="h-6 w-1/4" />
-              <Skeleton className="h-12 w-full" />
-          </div>
-      </div>
-  );
+    return (
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="space-y-4">
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-6 w-full" />
+            </div>
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-6 w-1/4" />
+                <Skeleton className="h-12 w-full" />
+            </div>
+        </div>
+    );
 }
