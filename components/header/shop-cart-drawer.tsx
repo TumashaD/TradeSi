@@ -155,7 +155,10 @@ export function ShopCartDrawer() {
                         disabled={isLoading}
                         variant="default"
                         size="lg"
-                        onClick={() => router.push(`/checkout`)} // Checkout button
+                        onClick={() => {
+                            localStorage.setItem("cartItems", JSON.stringify(itemsInCart)); // Save cartItems to local storage
+                            router.push(`/checkout`); // Navigate to the checkout page
+                        }}
                     >
                         {isLoading ? "Processing..." : "Checkout"}
                         {isLoading && <Loader className="animate-spin" />}

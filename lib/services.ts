@@ -232,6 +232,7 @@ export async function getCartItemsWithDetails(cartId: number): Promise<CartItemD
                 ci.Price,
                 i.Product_ID,
                 i.imageURL,
+                i.quantity as Stock,
                 p.Title, 
                 p.Description
             FROM 

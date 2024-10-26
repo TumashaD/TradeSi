@@ -99,7 +99,7 @@ export default function ProductPage() {
         // If no match is found, set defaults for unavailable combination
         setSelectedItemId(null);
         setPrice(-1);
-        setStock(0);
+        setStock(-1);
     };
     
     // When Add to Cart is clicked, log the selected item_id and quantity if available
@@ -205,10 +205,10 @@ export default function ProductPage() {
 
                     <Button
                         onClick={handleAddToCart}
-                        disabled={stock === 0}
+                        disabled={stock === -1}
                         className="w-full"
                     >
-                        {stock === 0 ? "Out of Stock" : "Add to Cart"}
+                        {stock === -1 ? "Not Available" : "Add to Cart"}
                     </Button>
                 </div>
             </div>
