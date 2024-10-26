@@ -1,8 +1,12 @@
+"use client";
+
 import { buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function HeroSection() {
+
+
     return (
         <section className="block overflow-x-hidden md:h-[45hv] lg:h-[55hv] xl:h-[70vh]">
             <article className="relative flex h-auto max-h-full w-auto max-w-full flex-row">

@@ -7,8 +7,7 @@ import axios from "axios";
 import getDatabase from '@/lib/db';
 import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
 import { RowDataPacket } from "mysql2";
-import { hashPassword } from '@/lib/utils';
-
+import { hashPassword } from "./utils";
 const API_URL = process.env.API_URL;
   
   interface CustomerRow extends RowDataPacket {
@@ -28,151 +27,62 @@ const API_URL = process.env.API_URL;
   
   export async function getCurrentUser(): Promise<User | null> {
     try {
-      // Verify session and get user authentication details
-      const session = await verifySession();
-      if (!session) return null;
-  
-      const { isAdmin, id } = session;
-  
-      // Get database instance
-      const db = await getDatabase();
-  
-      // Fetch user details from database
-      const [rows] = await db.query<[CustomerRow[], any]>(
-        `SELECT 
-          Customer_ID,
-          Password,
-          First_Name,
-          Last_Name,
-          Email,
-          Telephone,
-          House_No,
-          Address_Line1,
-          Address_Line2,
-          City,
-          Zipcode,
-          is_Guest
-        FROM Customer 
-        WHERE Customer_ID = ?`,
-        [id]
-      );
-  
-      if (!rows.length) {
-        console.error(`No user found with ID ${id}`);
-        return null;
-      }
-  
-      const customer = JSON.parse(JSON.stringify(rows[0]));  
-  
-      // Transform database record to User interface
-      const user: User = {
-        id: customer.Customer_ID,
-        password: customer.Password,
-        firstName: customer.First_Name,
-        lastName: customer.Last_Name,
-        email: customer.Email,
-        telephone: customer.Telephone,
-        houseNo: customer.House_No,
-        addressLine1: customer.Address_Line1,
-        addressLine2: customer.Address_Line2,
-        city: customer.City,
-        zipcode: customer.Zipcode,
-        isAdmin,
-        isGuest: customer.is_Guest === 1
-      };
-  
-      return user;
-    } catch (error) {
-      console.error('Failed to fetch current user:', error);
-      return null;
-    }
-  }
-  
+        const session = await verifySession();
+        if (!session) return null;
 
+        const { isAdmin, id } = session;
 
-/**
- * Getting a single product from fake store API
- * @param {string} id - The ID of the product to fetch.
- * @returns {Promise<Product> | null} A promise that resolves to the fetched product.
- */
-export async function getProduct(id: string): Promise<Product | null> {
-    // For enhanced security, the verifySession function can be used to authenticate the user.
-    // While middleware is a viable option, verifySession can also be directly utilized within services.
-    // We can use it also for checking the user role and other user data.
-    // This forms part of the Data Access Layer (DAL).
-    // const session = await verifySession();
-    // if (!session) return null;
+        const db = await getDatabase();
 
-    try {
-        const response = await axios.get<Product>(`${API_URL}/products/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Failed to fetch product with ID ${id}:`, error);
-        return null;
-    }
-}
+        const [rows] = await db.query<[CustomerRow[], any]>(
+            `SELECT 
+                Customer_ID,
+                Password,
+                First_Name,
+                Last_Name,
+                Email,
+                Telephone,
+                House_No,
+                Address_Line1,
+                Address_Line2,
+                City,
+                Zipcode,
+                is_Guest
+             FROM Customer 
+             WHERE Customer_ID = ?`,
+            [id]
+        );
 
-
-/**
- *  Getting all products from fake store API
- *
- * @export
- * @param {string} [category]
- * @return {Promise<Product[]>}
- */
-export async function getProducts(
-    category?: string
-): Promise<Product[]> {
-    // For enhanced security, the verifySession function can be used to authenticate the user.
-    // While middleware is a viable option, verifySession can also be directly utilized within services.
-    // We can use it also for checking the user role and other user data.
-    // This forms part of the Data Access Layer (DAL).
-    // const session = await verifySession();
-    // if (!session) return [];
-
-    try {
-        const connection = await getDatabase();  // Await the connection to the database
-        if (category) {
-            const [rows] = await connection.query<any>(
-                "call viewCategoryProducts(?)", [category]
-            );
-            const data = JSON.parse(JSON.stringify(rows));
-            return data;
-        } else {
-            const [rows] = await connection.query<any>(
-                `select * from TradeSi.AllProducts`);
-            const data = JSON.parse(JSON.stringify(rows));
-            console.log("all products");
-            console.log(data);
-            return data;
+        if (!rows.length) {
+            console.error(`No user found with ID ${id}`);
+            return null;
         }
-    } catch (error) {
-        console.error(`Failed to fetch products:`, error);
-        return [];
-    }
-}
 
-/**
- * Getting all categories from fake store API
- * @returns {Promise<string[]>} A promise that resolves to an array of product categories.
- */
-export async function getCategories(): Promise<string[]> {
-    // For enhanced security, the verifySession function can be used to authenticate the user.
-    // While middleware is a viable option, verifySession can also be directly utilized within services.
-    // We can use it also for checking the user role and other user data.
-    // This forms part of the Data Access Layer (DAL).
-    // const session = await verifySession();
-    // if (!session) return [];
+        const customer = JSON.parse(JSON.stringify(rows[0]));
 
-    try {
-        const connection = await getDatabase();  // Await the connection to the database
-        const [rows] = await connection.query<any>('SELECT c.category_id, c.Name FROM TradeSi.Category c WHERE c.Parent_Category_ID IS NULL');
-        // return rows as {category_id: bigint, Name: string}[]; // Return only category id and category name
-        const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
-        return categoryNames as string[];
+        const user: User = {
+            id: customer.Customer_ID,
+            password: customer.Password,
+            firstName: customer.First_Name,
+            lastName: customer.Last_Name,
+            email: customer.Email,
+            telephone: customer.Telephone,
+            houseNo: customer.House_No,
+            addressLine1: customer.Address_Line1,
+            addressLine2: customer.Address_Line2,
+            city: customer.City,
+            zipcode: customer.Zipcode,
+            isAdmin: isAdmin ?? false,
+            isGuest: customer.is_Guest === 1,
+        };
+
+        return user;
     } catch (error) {
-        console.error(`Failed to fetch products:`, error);
-        return [];
+        if ((error as Error).message === "UnauthorizedError") {
+            throw new Error("UnauthorizedError");
+        }
+        console.error("Failed to fetch current user:", error);
+        return null;
     }
 }
 
@@ -229,6 +139,96 @@ export async function createCustomer(customerData: User): Promise<{ success: boo
             success: false,
             message: 'Failed to create customer'
         };
+    }
+}
+  
+
+
+/**
+ * Getting a single product from fake store API
+ * @param {string} id - The ID of the product to fetch.
+ * @returns {Promise<Product> | null} A promise that resolves to the fetched product.
+ */
+export async function getProduct(id: string): Promise<Product | null> {
+    // For enhanced security, the verifySession function can be used to authenticate the user.
+    // While middleware is a viable option, verifySession can also be directly utilized within services.
+    // We can use it also for checking the user role and other user data.
+    // This forms part of the Data Access Layer (DAL).
+    // const session = await verifySession();
+    // if (!session) return null;
+
+    try {
+        const response = await axios.get<Product>(`${API_URL}/products/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to fetch product with ID ${id}:`, error);
+        return null;
+    }
+}
+
+
+/**
+ *  Getting all products from fake store API
+ *
+ * @export
+ * @param {string} [category]
+ * @return {Promise<Product[]>}
+ */
+export async function getProducts(
+    category?: string
+): Promise<Product[]> {
+    // For enhanced security, the verifySession function can be used to authenticate the user.
+    // While middleware is a viable option, verifySession can also be directly utilized within services.
+    // We can use it also for checking the user role and other user data.
+    // This forms part of the Data Access Layer (DAL).
+    // const session = await verifySession();
+    // if (!session) return [];
+
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        if (category) {
+            const [rows] = await connection.query<any>(
+                "call viewCategoryProducts(?)", [category]
+            );
+            const data = JSON.parse(JSON.stringify(rows));
+            console.log("category products");
+            console.log(data);
+            return data;
+        } else {
+            const [rows] = await connection.query<any>(
+                `select * from TradeSi.AllProducts`);
+            const data = JSON.parse(JSON.stringify(rows));
+            console.log("all products");
+            console.log(data);
+            return data;
+        }
+    } catch (error) {
+        console.error(`Failed to fetch products:`, error);
+        return [];
+    }
+}
+
+/**
+ * Getting all categories from fake store API
+ * @returns {Promise<string[]>} A promise that resolves to an array of product categories.
+ */
+export async function getCategories(): Promise<string[]> {
+    // For enhanced security, the verifySession function can be used to authenticate the user.
+    // While middleware is a viable option, verifySession can also be directly utilized within services.
+    // We can use it also for checking the user role and other user data.
+    // This forms part of the Data Access Layer (DAL).
+    // const session = await verifySession();
+    // if (!session) return [];
+
+    try {
+        const connection = await getDatabase();  // Await the connection to the database
+        const [rows] = await connection.query<any>('SELECT c.category_id, c.Name FROM TradeSi.Category c WHERE c.Parent_Category_ID IS NULL');
+        // return rows as {category_id: bigint, Name: string}[]; // Return only category id and category name
+        const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
+        return categoryNames as string[];
+    } catch (error) {
+        console.error(`Failed to fetch products:`, error);
+        return [];
     }
 }
 

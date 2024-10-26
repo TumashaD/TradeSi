@@ -7,13 +7,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 const API_URL = process.env.API_URL;
+import { compare, hash } from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cache } from 'react';
 import { RowDataPacket } from 'mysql2';
 import getDatabase from './db';
 import { verifyPassword } from "./utils";
-
-// Schema for login validation
 
 
 interface CustomerRow extends RowDataPacket {
@@ -32,45 +31,41 @@ interface CustomerRow extends RowDataPacket {
   }
 
 
-  // Create a new session
+// Create an authenticated session
 async function createSession(customerId: number): Promise<string> {
-    const db = await getDatabase();
-    const sessionId = Date.now();
-    console.log(sessionId);
-    const createdAt = new Date();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    
+  const db = await getDatabase();
+  const sessionId = Date.now();
+  const createdAt = new Date();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days for authenticated sessions
   
-    try {
-      await db.query<[SessionRow[], any]>(
-        'INSERT INTO Session (Session_ID, CreatedAt, ExpiresAt) VALUES (?, ?, ?)',
-        [sessionId, createdAt, expiresAt]
-      );
-  
-      // Create JWT token
-      if (!process.env.JWT_SECRET_KEY) {
-        throw new Error('JWT_SECRET_KEY is not defined in environment variables');
-      }
-  
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
-      const token = await new SignJWT({
-        user: true,
-        sub: customerId.toString(),
-        sessionId: sessionId.toString()
-      })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
-        .sign(secret);
-  
-      return token;
-    } catch (error) {
-      console.error('Error creating session:', error);
-      throw error;
-    }
-  }
+  try {
+    await db.query<[SessionRow[], any]>(
+      'INSERT INTO Session (Session_ID, CreatedAt, ExpiresAt) VALUES (?, ?, ?)',
+      [sessionId, createdAt, expiresAt]
+    );
 
-// Login function
+    if (!process.env.JWT_SECRET_KEY) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables');
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
+    const token = await new SignJWT({
+      user: true,
+      sub: customerId.toString(),
+      sessionId: sessionId.toString()
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
+      .sign(secret);
+
+    return token;
+  } catch (error) {
+    console.error('Error creating authenticated session:', error);
+    throw error;
+  }
+}
+
 export async function login(formData: FormData) {
   
   try {
@@ -141,8 +136,6 @@ export async function login(formData: FormData) {
       };
     }
   }
-
-
 /**
  ** Logs out the user by deleting the token cookie and redirecting to the login page.
  * @returns {Promise<void>}

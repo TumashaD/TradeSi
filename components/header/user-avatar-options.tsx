@@ -21,20 +21,22 @@ export default async function UserAvatarOptions() {
     const user: User | null = await getCurrentUser();
 
     if (!user) {
+        // User is a guest, display the login button
         return (
             <Button
-            variant="outline"
-            size="lg"
-            className="flex items-center gap-2 px-6 py-2 transition-all hover:bg-slate-100 hover:scale-105"
-          >
-            <LogIn className="w-4 h-4" />
-            <Link href="/login" className="font-medium">
-              Login
-            </Link>
-          </Button>
+                variant="outline"
+                size="lg"
+                className="flex items-center gap-2 px-6 py-2 transition-all hover:bg-slate-100 hover:scale-105"
+            >
+                <Link href="/login" className="font-medium flex gap-3">
+                    <LogIn className="w-4 h-4" />
+                    Login
+                </Link>
+            </Button>
         );
     }
 
+    // Authenticated user, show dropdown options
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -69,13 +71,11 @@ export default async function UserAvatarOptions() {
                 </DropdownMenuLabel>
                 <>
                     {user?.isAdmin && (
-                        <>
-                            <DropdownMenuItem className="cursor-pointer">
-                                <Link href={"/admin"} passHref>
-                                    Dashboard
-                                </Link>
-                            </DropdownMenuItem>
-                        </>
+                        <DropdownMenuItem className="cursor-pointer">
+                            <Link href={"/admin"} passHref>
+                                Dashboard
+                            </Link>
+                        </DropdownMenuItem>
                     )}
                 </>
                 <LogoutButton />
