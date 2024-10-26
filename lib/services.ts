@@ -7,7 +7,8 @@ import axios from "axios";
 import getDatabase from '@/lib/db';
 import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
 import { RowDataPacket } from "mysql2";
-import { hashPassword } from "./utils";
+import { hashPassword } from '@/lib/utils';
+
 const API_URL = process.env.API_URL;
   
   interface CustomerRow extends RowDataPacket {
@@ -172,10 +173,12 @@ export async function getProduct(id: string): Promise<Product | null> {
  *
  * @export
  * @param {string} [category]
+ * @param {string} [query]
  * @return {Promise<Product[]>}
  */
 export async function getProducts(
-    category?: string
+    category?: string,
+    params?: string
 ): Promise<Product[]> {
     // For enhanced security, the verifySession function can be used to authenticate the user.
     // While middleware is a viable option, verifySession can also be directly utilized within services.
@@ -190,16 +193,12 @@ export async function getProducts(
             const [rows] = await connection.query<any>(
                 "call viewCategoryProducts(?)", [category]
             );
-            const data = JSON.parse(JSON.stringify(rows));
-            console.log("category products");
-            console.log(data);
+            const data = JSON.parse(JSON.stringify(rows[0]));
             return data;
         } else {
             const [rows] = await connection.query<any>(
                 `select * from TradeSi.AllProducts`);
             const data = JSON.parse(JSON.stringify(rows));
-            console.log("all products");
-            console.log(data);
             return data;
         }
     } catch (error) {

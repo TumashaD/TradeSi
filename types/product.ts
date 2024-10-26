@@ -19,7 +19,7 @@ export enum ProductCategory {
 export interface ProductPageQueryParams {
     searchParams: {
         category?: string;
-        // query?: string;
+        query?: string;
     };
 }
 

@@ -27,7 +27,7 @@ export async function generateMetadata(
         title: `Spectrum - ${product?.title}`,
         description: product?.description,
         openGraph: {
-            images: [product?.image, ...previousImages],
+            images: [product?.imageURL, ...previousImages],
         },
     };
 }
@@ -52,7 +52,7 @@ notFound()
                 </Link>
                 <div className=" flex flex-auto flex-col items-center justify-center gap-10 p-3 min-[460px]:p-0  md:flex-row ">
                     <Image
-                        src={product.image}
+                        src={product.imageURL}
                         alt={product.title}
                         width={400}
                         height={400}
@@ -88,7 +88,7 @@ notFound()
                             </p>
                         </div>
 
-                        <p className="text-2xl font-bold">${product.price}</p>
+                        <p className="text-2xl font-bold">${product.base_price}</p>
                         <ProductActions product={product} />
                     </div>
                 </div>

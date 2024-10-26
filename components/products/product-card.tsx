@@ -14,6 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
     const decQty = useStore.use.decQty();
     const products = useStore((state) => state.products);
     const productQnt = products.find((p) => p.product_id === product.product_id)?.quantity;
+    console.log(product);
 
 
     const isMount = useMounted();
