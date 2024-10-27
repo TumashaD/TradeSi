@@ -5,13 +5,13 @@ import { User } from "@/types/user";
 import { Product } from "@/types/product";
 import axios from "axios";
 import getDatabase from '@/lib/db';
-import { Customer, CustomerOrderReport,Order,QuarterlySales } from "@/lib/types";
+import { Customer, CustomerOrderReport, Order, QuarterlySales } from "@/lib/types";
 import { RowDataPacket } from "mysql2";
 import { hashPassword } from '@/lib/utils';
 
 const API_URL = process.env.API_URL;
-  
-  interface CustomerRow extends RowDataPacket {
+
+interface CustomerRow extends RowDataPacket {
     Customer_ID: number;
     First_Name: string;
     Last_Name: string | null;
@@ -24,9 +24,9 @@ const API_URL = process.env.API_URL;
     Zipcode: string;
     is_Guest: number;
     Password: string | null;
-  }
-  
-  export async function getCurrentUser(): Promise<User | null> {
+}
+
+export async function getCurrentUser(): Promise<User | null> {
     try {
         const session = await verifySession();
         if (!session) return null;
@@ -153,7 +153,7 @@ export async function updateCustomer(
 
         // Call the stored procedure
         const query = `CALL UpdateCustomer(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        
+
         const values = [
             customerId,
             customerData.isGuest,
@@ -186,7 +186,7 @@ export async function updateCustomer(
 
         // Log the error for debugging
         console.error('Failed to update customer:', error);
-        
+
         return {
             success: false,
             message: 'Failed to update customer'
@@ -194,7 +194,7 @@ export async function updateCustomer(
     }
 }
 
-  
+
 
 
 /**
@@ -223,6 +223,7 @@ export async function getProduct(id: string): Promise<Product | null> {
 /**
  *  Getting all products from fake store API
  *
+ /**
  * @export
  * @param {string} [category]
  * @param {string} [query]
@@ -230,34 +231,47 @@ export async function getProduct(id: string): Promise<Product | null> {
  */
 export async function getProducts(
     category?: string,
-    params?: string
+    query?: string
 ): Promise<Product[]> {
     // For enhanced security, the verifySession function can be used to authenticate the user.
-    // While middleware is a viable option, verifySession can also be directly utilized within services.
-    // We can use it also for checking the user role and other user data.
-    // This forms part of the Data Access Layer (DAL).
     // const session = await verifySession();
     // if (!session) return [];
 
     try {
         const connection = await getDatabase();  // Await the connection to the database
+        let data: Product[] = [];
+
+        // Handle category filtering
         if (category) {
             const [rows] = await connection.query<any>(
                 "call viewCategoryProducts(?)", [category]
             );
-            const data = JSON.parse(JSON.stringify(rows[0]));
-            return data;
+            data = JSON.parse(JSON.stringify(rows[0]));
         } else {
+            // Default case: return all products
             const [rows] = await connection.query<any>(
-                `select * from TradeSi.AllProducts`);
-            const data = JSON.parse(JSON.stringify(rows));
-            return data;
+                `select * from TradeSi.AllProducts`
+            );
+            data = JSON.parse(JSON.stringify(rows));
         }
+
+        // Handle search query
+        if (query) {
+            const [rows] = await connection.query<any>(
+                "call SearchProducts(?)", [query]
+            );
+            console.log("query executed");
+            data = JSON.parse(JSON.stringify(rows[0]));
+        }
+
+
+        return data;
     } catch (error) {
         console.error(`Failed to fetch products:`, error);
         return [];
     }
 }
+
 
 /**
  * Getting all categories from fake store API
@@ -323,7 +337,7 @@ export async function getCustomerCart(id: number): Promise<number> {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
-            'SELECT Cart_ID FROM Cart WHERE Customer_ID = ?', 
+            'SELECT Cart_ID FROM Cart WHERE Customer_ID = ?',
             [id]
         );
 
@@ -421,7 +435,7 @@ export async function addCartItem(cartId: number, itemId: number, quantity: numb
 
         // Convert current price to a number to avoid concatenation issues
         const currentPrice = existingItem.length > 0 ? parseFloat(existingItem[0].Price.toString()) : 0;
- 
+
         if (existingItem.length > 0) {
             // If it exists, you might want to update the quantity instead
             const newQuantity = existingItem[0].Quantity + quantity; // Example: Increment quantity
@@ -722,7 +736,7 @@ export async function getQuarterlySales(year: number): Promise<QuarterlySales[] 
 
 }
 
-export async function getTopSellingProducts(startDate:string,endDate:string) {
+export async function getTopSellingProducts(startDate: string, endDate: string) {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
@@ -738,7 +752,7 @@ export async function getTopSellingProducts(startDate:string,endDate:string) {
     }
 }
 
-export async function getTopCategories(startDate:string,endDate:string) {
+export async function getTopCategories(startDate: string, endDate: string) {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
@@ -754,7 +768,7 @@ export async function getTopCategories(startDate:string,endDate:string) {
     }
 }
 
-export async function getMonthlyProductInterest(p_id:number,year:number) {
+export async function getMonthlyProductInterest(p_id: number, year: number) {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
