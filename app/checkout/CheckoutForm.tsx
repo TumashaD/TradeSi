@@ -31,6 +31,8 @@ import {
 import Link from "next/link"; // Import the Link component
 import { GetCard, makeOrder } from "@/lib/services/order";
 import { User } from '@/types/user';
+import { createGuestCustomer, getCurrentUser } from '@/lib/services/customer';
+import { getCustomerCart } from '@/lib/services/cart';
 
 
 
@@ -58,10 +60,9 @@ const formSchema = z.object({
 interface CheckoutFormProps {
   products: any[]; // Replace 'any' with your product type if needed
   totalPrice: number;
-  customer: User; // Replace 'any' with your customer type if needed
 }
 
-export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
+export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
   const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
@@ -69,6 +70,7 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   const [noStockFlag, setNoStockFlag] = useState(false);
   const [noStockMessage, setNoStockMessage] = useState("");
   const [card, setCard] = useState<any | null>(null);
+  const [customer, setCustomer] = useState<User | null>(null);
   
   
 
@@ -76,8 +78,10 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   useEffect(() => {
     const fetchCard = async () => {
       try {
-        if (customer.id !== undefined) {
-          const cardDetails = await GetCard(customer.id);
+        const customer = await getCurrentUser();
+        setCustomer(customer);
+        if (customer?.id !== undefined) {
+          const cardDetails = await GetCard(customer?.id);
           setCard(cardDetails[0] || null);
         }
         // Assuming you want to use the first card if there are multiple
@@ -86,10 +90,7 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
         console.error("Failed to fetch card details:", error);
       }
     };
-
-    if (customer?.id) {
       fetchCard();
-    }
   }, [customer]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -169,7 +170,6 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   }, [products, form.watch("Delivery_Method"), form.watch("City")]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
 
     // Open the alert dialog on successful submission
     setOpenDialog(true);
@@ -480,24 +480,45 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
               };
 
               try {
-                // Call the makeOrder function
-                if (typeof customer.id === 'number') {
-                  await makeOrder(products, totalPrice, { Customer_ID: BigInt(customer.id) }, formData);
-                } else {
-                  console.error("Customer ID is not a valid number");
-                  toast.error("Failed to confirm order due to invalid customer ID.");
+                // if customer is null, create a guest customer
+                if (!customer) {
+                  const customerData = {
+                    firstName: values.First_Name,
+                    lastName: values.Last_Name,
+                    email: values.Email,
+                    telephone: values.Telephone,
+                    houseNo: values.House_No,
+                    addressLine1: values.Address_Line1,
+                    addressLine2: values.Address_Line2,
+                    city: values.City,
+                    zipcode: values.Zipcode,
+                  };
+                  const guest = await createGuestCustomer(customerData);
+                  setCustomer(guest);
+                  // Call makeOrder with the guest customer
+                  if (guest?.id !== undefined) {
+                    await makeOrder(products, totalPrice, { Customer_ID: guest.id }, formData);
+                  } else {
+                    throw new Error("Guest customer ID is undefined");
+                  }
+                  // Toast success message
+                  toast.success("Order placed successfully!");
+                  router.push("/"); // Redirect to home page
                 }
-                toast.success("Order confirmed!"); // Show success message
-                
-                // Redirect to home page after a short delay to allow the toast to be seen
-                setTimeout(() => {
-                  router.push('/'); // Redirect to home page
-                }, 2000); // Adjust the delay as needed (2000 ms = 2 seconds)
+                else {
+                  // Call makeOrder with the authenticated customer
+                  if (customer?.id !== undefined) {
+                    await makeOrder(products, totalPrice, { Customer_ID: customer.id }, formData);
+                  } else {
+                    throw new Error("Customer ID is undefined");
+                  }
+                  // Toast success message
+                  toast.success("Order placed successfully!");
+                  router.push("/"); // Redirect to home page
+                }
 
-                setOpenDialog(false); // Close the dialog
               } catch (error) {
-                console.error("Error making order:", error);
-                toast.error("Failed to confirm order."); // Show error message
+                console.error("Failed to create guest customer:", error);
               }
             }}
           >

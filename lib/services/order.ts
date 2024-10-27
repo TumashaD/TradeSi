@@ -1,11 +1,12 @@
 'use server';
 
 import getDatabase from '@/lib/db';
+import { getCustomerCart } from './cart';
 
 export async function makeOrder(
     products: { Item_ID: bigint; Quantity: number }[], // Adjust type as needed
     totalPrice: number,
-    customer: { Customer_ID: bigint }, // Adjust the structure based on your actual customer object
+    customer: { Customer_ID: number }, // Adjust the structure based on your actual customer object
     formData: {
         paymentType: 'Card' | 'Cash On Delivery'; // Add more types if necessary
         deliveryType: string;
@@ -53,6 +54,13 @@ export async function makeOrder(
                 product.Quantity,
             ]);
         }
+
+
+        // get the cart id
+        const cartId = await getCustomerCart(customer.Customer_ID, true);
+        // delete the cart items
+        await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ?', [cartId]);
+
 
     } catch (error) {
         console.error('Failed to create order:', error);

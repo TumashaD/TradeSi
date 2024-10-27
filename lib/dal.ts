@@ -23,7 +23,6 @@ interface CustomerRow extends RowDataPacket {
     ExpiresAt: Date;
   }
 
-  // Verify session function
 // Verify session function
 export const verifySession = cache(async () => {
   const db = await getDatabase();

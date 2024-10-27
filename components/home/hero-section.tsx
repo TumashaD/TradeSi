@@ -3,14 +3,8 @@
 import { buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { createGuestSession } from "@/lib/user";
 
 export default function HeroSection() {
-
-    // create a guest session
-    const guestSession = async () => {
-        await createGuestSession();
-    }
 
 
     return (
@@ -41,7 +35,6 @@ export default function HeroSection() {
                     <Link
                         href="/products"
                         className={buttonVariants({ variant: "outline" })}
-                        onClick={guestSession}
                     >
                         See All Products
                     </Link>

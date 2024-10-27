@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/contexts/theme-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import { CartProvider } from "@/lib/context/cardContext"; // Import CartProvider
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -32,8 +33,10 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <Toaster />
-                    {children}
+                    <CartProvider> {/* Wrap with CartProvider */}
+                        <Toaster />
+                        {children}
+                    </CartProvider>
                 </ThemeProvider>
             </body>
         </html>
