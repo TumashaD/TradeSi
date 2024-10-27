@@ -21,7 +21,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createProduct, deleteProduct, updateProduct } from "@/lib/actions";
+import { createProduct, deleteProduct, updateProduct } from "@/lib/user";
 
 import {
     Select,

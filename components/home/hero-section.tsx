@@ -3,7 +3,7 @@
 import { buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { createGuestSession } from "@/lib/actions";
+import { createGuestSession } from "@/lib/user";
 
 export default function HeroSection() {
 

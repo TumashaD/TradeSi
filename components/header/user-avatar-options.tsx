@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentUser } from "@/lib/services";
+import { getCurrentUser } from "@/lib/services/customer";
 import { User } from "@/types/user";
 import clsx from "clsx";
 import Link from "next/link";

@@ -15,7 +15,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { deleteProduct } from "@/lib/actions";
+import { deleteProduct } from "@/lib/user";
 import { Product } from "@/types/product";
 import Image from "next/image";
 interface CellActionProps {
@@ -32,7 +32,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         try {
             setLoading(true);
             toast.promise(
-                deleteProduct(data.id.toString()),
+                deleteProduct(data.product_id.toString()),
                 {
                     loading: "Deleting...🧨",
                     success: (res) => (
@@ -107,14 +107,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
-                        onClick={() => onCopy(data.id.toString())}
+                        onClick={() => onCopy(data.product_id.toString())}
                     >
                         <Copy className="mr-2 h-4 w-4" /> Copy Id
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() =>
                             router.push(
-                                `/admin/products/${data.id}`,
+                                `/admin/products/${data.product_id}`,
                             )
                         }
                     >

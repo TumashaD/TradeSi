@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/lib/actions";
+import { login } from "@/lib/user";
 import Image from "next/image";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";

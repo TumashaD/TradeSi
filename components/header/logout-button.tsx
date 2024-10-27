@@ -1,6 +1,6 @@
 "use client";
 
-import { logout } from "@/lib/actions";
+import { logout } from "@/lib/user";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
 

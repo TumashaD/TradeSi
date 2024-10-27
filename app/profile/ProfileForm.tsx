@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User } from "@/types/user";
-import { updateCustomer } from "@/lib/services";
+import { updateCustomer } from "@/lib/services/customer";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 

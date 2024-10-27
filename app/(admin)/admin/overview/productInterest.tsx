@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp } from 'lucide-react';
-import { getMonthlyProductInterest, getAllProductNames } from '@/lib/services';
+import { getMonthlyProductInterest, getAllProductNames } from '@/lib/services/admin';
 interface ProductInterestAnalysisProps {
     year: number;
   }

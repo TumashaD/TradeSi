@@ -1,4 +1,4 @@
-import { getProducts } from "@/lib/services";
+import { getProducts } from "@/lib/services/products";
 import { Product, ProductPageQueryParams } from "@/types/product";
 // import ProductCard from "./product-card";
 import ProductCard from "@/components/products/product-card";

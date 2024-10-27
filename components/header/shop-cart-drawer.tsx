@@ -22,7 +22,7 @@ import router from "next/router";
 
 
 // Assuming these functions exist
-import { Cart, getCustomerCart, getCartItems, deleteCartItem, getCartItemsWithDetails } from "@/lib/services"; // Adjust import as necessary
+import { Cart, getCustomerCart, getCartItems, deleteCartItem, getCartItemsWithDetails } from "@/lib/services/cart"; // Adjust import as necessary
 
 export function ShopCartDrawer() {
     const router = useRouter();

@@ -34,9 +34,9 @@ import {
     DollarSign,
 } from "lucide-react";
 import OrderDetailsModal from "./customerOrders";
-import { getTotalCustomers, getTotalOrders, getAvgOrderValue, getCustomerOrderReport} from "@/lib/services";
+import { getTotalCustomers, getTotalOrders, getAvgOrderValue, getCustomerOrderReport} from "@/lib/services/admin";
 import SummaryCard from "../../summaryCard";
-import type { CustomerOrderReport} from "@/lib/types";
+import type { CustomerOrderReport} from "@/types/admin";
 
 const CustomerOrderReport = () => {
     const [searchTerm, setSearchTerm] = useState("");

@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchProductData, ProductData, addCartItem, getCustomerCart } from "../../../../lib/services";
+import { addCartItem, getCustomerCart } from "@/lib/services/cart";
+import { fetchProductData } from "@/lib/services/products";
+import { ProductData } from "@/types/product";
 import { useStore } from "@/store/store";
 
 

@@ -9,12 +9,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { getTotalRevenue, getTotalCustomers, getTotalOrders, getQuarterlySales, getTopSellingProducts,generateTopProducts, getTopCategories } from "@/lib/services";
+import { getTotalRevenue, getTotalCustomers, getTotalOrders, getQuarterlySales, getTopSellingProducts, getTopCategories } from "@/lib/services/admin";
 import SummaryCard from "../../summaryCard";
 import ChartBar from "../../barChart";
 import ChartLine from "../../lineChart";
 import { DollarSign, ShoppingBag, Users } from "lucide-react";
-import { QuarterlySales } from "@/lib/types";
+import { QuarterlySales } from "@/types/admin";
 import { get } from "http";
 import ProductInterestAnalysis from "./productInterest";
 

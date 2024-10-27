@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package } from "lucide-react";
-import { getCustomerOrders } from "@/lib/services";
+import { getCustomerOrders } from "@/lib/services/admin";
 
 interface Order {
     orderId: string;

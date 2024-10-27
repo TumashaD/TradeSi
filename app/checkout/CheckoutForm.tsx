@@ -29,7 +29,8 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // Adjust this import based on your file structure
 import Link from "next/link"; // Import the Link component
-import { GetCard, makeOrder } from "@/lib/services";
+import { GetCard, makeOrder } from "@/lib/services/order";
+import { User } from '@/types/user';
 
 
 
@@ -57,7 +58,7 @@ const formSchema = z.object({
 interface CheckoutFormProps {
   products: any[]; // Replace 'any' with your product type if needed
   totalPrice: number;
-  customer: any; // Replace 'any' with your customer type if needed
+  customer: User; // Replace 'any' with your customer type if needed
 }
 
 export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
@@ -75,15 +76,18 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   useEffect(() => {
     const fetchCard = async () => {
       try {
-        const cardDetails = await GetCard(customer.Customer_ID);
+        if (customer.id !== undefined) {
+          const cardDetails = await GetCard(customer.id);
+          setCard(cardDetails[0] || null);
+        }
         // Assuming you want to use the first card if there are multiple
-        setCard(cardDetails[0] || null); 
+        setCard(card[0] || null); 
       } catch (error) {
         console.error("Failed to fetch card details:", error);
       }
     };
 
-    if (customer?.Customer_ID) {
+    if (customer?.id) {
       fetchCard();
     }
   }, [customer]);
@@ -91,15 +95,15 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      First_Name: customer?.First_Name || "",
-      Last_Name: customer?.Last_Name || "",
-      Email: customer?.Email || "",
-      Telephone: customer?.Telephone || "",
-      House_No: customer?.House_No || "",
-      Address_Line1: customer?.Address_Line1 || "",
-      Address_Line2: customer?.Address_Line2 || "",
-      City: customer?.City || "",
-      Zipcode: customer?.Zipcode || "",
+      First_Name: customer?.firstName || "",
+      Last_Name: customer?.lastName || "",
+      Email: customer?.email || "",
+      Telephone: customer?.telephone || "",
+      House_No: customer?.houseNo|| "",
+      Address_Line1: customer?.addressLine1 || "",
+      Address_Line2: customer?.addressLine2 || "",
+      City: customer?.city || "",
+      Zipcode: customer?.zipcode || "",
       Province: "",
       Delivery_Method: "Delivery",
       Payment_Type: "Cash on Delivery",
@@ -113,15 +117,15 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
   useEffect(() => {
     if (customer) {
       form.reset({
-        First_Name: customer?.First_Name || "",
-        Last_Name: customer?.Last_Name || "",
-        Email: customer?.Email || "",
-        Telephone: customer?.Telephone || "",
-        House_No: customer?.House_No || "",
-        Address_Line1: customer?.Address_Line1 || "",
-        Address_Line2: customer?.Address_Line2 || "",
-        City: customer?.City || "",
-        Zipcode: customer?.Zipcode || "",
+        First_Name: customer?.firstName || "",
+        Last_Name: customer?.lastName || "",
+        Email: customer?.email || "",
+        Telephone: customer?.telephone || "",
+        House_No: customer?.houseNo || "",
+        Address_Line1: customer?.addressLine1 || "",
+        Address_Line2: customer?.addressLine2 || "",
+        City: customer?.city || "",
+        Zipcode: customer?.zipcode || "",
         Province: "",
         Delivery_Method: "Delivery",
         Payment_Type: "Cash on Delivery",
@@ -477,7 +481,12 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
 
               try {
                 // Call the makeOrder function
-                await makeOrder(products, totalPrice, { Customer_ID: customer.Customer_ID }, formData);
+                if (typeof customer.id === 'number') {
+                  await makeOrder(products, totalPrice, { Customer_ID: BigInt(customer.id) }, formData);
+                } else {
+                  console.error("Customer ID is not a valid number");
+                  toast.error("Failed to confirm order due to invalid customer ID.");
+                }
                 toast.success("Order confirmed!"); // Show success message
                 
                 // Redirect to home page after a short delay to allow the toast to be seen

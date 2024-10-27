@@ -40,14 +40,3 @@ export interface QuarterlySales {
     TotalOrders: number;
     TotalRevenue: number;
 }
-
-export interface User {
-    id: number;
-    username: string;
-    isAdmin: boolean;
-    name: {
-        firstname: string;
-        lastname: string;
-    };
-}
-

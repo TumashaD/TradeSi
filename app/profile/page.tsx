@@ -3,7 +3,7 @@ import React from "react";
 import { ProfileForm } from "./ProfileForm"; // Ensure this is a client component
 import { Toaster } from "react-hot-toast"; // Import the Toaster component
 import BackButton from "@/components/admin/back-button";
-import { getCurrentUser, getCustomerById } from "../../lib/services"; // Import your server-side data fetching logic
+import { getCurrentUser } from "@/lib/services/customer"; // Import your server-side data fetching logic
 import { User } from "@/types/user";
 
 const ProfilePage = async () => {

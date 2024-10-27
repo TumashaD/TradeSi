@@ -1,3 +1,5 @@
+import { RowDataPacket } from "mysql2";
+
 export interface User {
     id?: number;
     firstName: string;
@@ -14,7 +16,17 @@ export interface User {
     password: string;
   }
 
-export interface LoginFrom {
-    username: string;
-    password: string;
+  export interface CustomerRow extends RowDataPacket {
+    Customer_ID: number;
+    First_Name: string;
+    Last_Name: string | null;
+    Email: string;
+    Telephone: string;
+    House_No: string | null;
+    Address_Line1: string;
+    Address_Line2: string | null;
+    City: string;
+    Zipcode: string;
+    is_Guest: number;
+    Password: string | null;
 }

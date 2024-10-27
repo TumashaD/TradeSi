@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckoutForm } from './CheckoutForm';
-import { getCustomerById } from "@/lib/services";
+import { getCurrentUser } from "@/lib/services/customer"; 
 import { Toaster } from 'react-hot-toast';
 
 type CartItemDetail = {
@@ -41,7 +41,7 @@ const CheckoutPage = () => {
     // Fetch customer data
     useEffect(() => {
         const fetchCustomerData = async () => {
-            const data = await getCustomerById("1");
+            const data = await getCurrentUser();
             if (data) {
                 setCustomerData(data);
             }
