@@ -22,7 +22,7 @@ const ProfilePage = async () => {
 
       <Toaster /> {/* Toaster that shows notifications */}
       
-      {/* Main content container */}
+      {/* Main content container */} 
       <div className="flex-grow px-8">
         {/* Pass customer data to the ProfileForm component */}
         <ProfileForm user={user} />

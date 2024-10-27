@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,6 +29,9 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // Adjust this import based on your file structure
 import Link from "next/link"; // Import the Link component
+import { GetCard, makeOrder } from "@/lib/services";
+
+
 
 // Define the validation schema
 const formSchema = z.object({
@@ -41,6 +45,7 @@ const formSchema = z.object({
   City: z.string().min(1, { message: "City is required." }),
   Zipcode: z.string().min(1, { message: "Zip code is required." }),
   Province: z.string().min(1, { message: "Province is required." }),
+  Delivery_Method: z.enum(["Store Pickup", "Delivery"]),
   Payment_Type: z.enum(["Cash on Delivery", "Card"]),
   Card_Number: z.string().optional(),
   Expiry_Date: z.string().optional(),
@@ -56,9 +61,33 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormProps) {
-  console.log(products, totalPrice, customer);
+  const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState(0);
+  const [noStockFlag, setNoStockFlag] = useState(false);
+  const [noStockMessage, setNoStockMessage] = useState("");
+  const [card, setCard] = useState<any | null>(null);
+  
+  
+
+  // Fetch card details when the component mounts or customer changes
+  useEffect(() => {
+    const fetchCard = async () => {
+      try {
+        const cardDetails = await GetCard(customer.Customer_ID);
+        // Assuming you want to use the first card if there are multiple
+        setCard(cardDetails[0] || null); 
+      } catch (error) {
+        console.error("Failed to fetch card details:", error);
+      }
+    };
+
+    if (customer?.Customer_ID) {
+      fetchCard();
+    }
+  }, [customer]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -72,17 +101,72 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
       City: customer?.City || "",
       Zipcode: customer?.Zipcode || "",
       Province: "",
+      Delivery_Method: "Delivery",
       Payment_Type: "Cash on Delivery",
-      Card_Number: "",
-      Expiry_Date: "",
-      Name_On_Card: "",
+      Card_Number: card?.Card_Number || "",
+      Expiry_Date: card?.Expiry_Date || "",
+      Name_On_Card: card?.Name_On_Card || "",
       CVV: "",
     },
   });
 
+  useEffect(() => {
+    if (customer) {
+      form.reset({
+        First_Name: customer?.First_Name || "",
+        Last_Name: customer?.Last_Name || "",
+        Email: customer?.Email || "",
+        Telephone: customer?.Telephone || "",
+        House_No: customer?.House_No || "",
+        Address_Line1: customer?.Address_Line1 || "",
+        Address_Line2: customer?.Address_Line2 || "",
+        City: customer?.City || "",
+        Zipcode: customer?.Zipcode || "",
+        Province: "",
+        Delivery_Method: "Delivery",
+        Payment_Type: "Cash on Delivery",
+        Card_Number: card?.Card_Number || "",
+        Expiry_Date: card?.Expiry_Date || "",
+        Name_On_Card: card?.Name_On_Card || "",
+        CVV: "",
+      });
+    }
+  }, [customer, form]);
+
+  // Check stock and set delivery time
+  useEffect(() => {
+    let deliveryTime = 0;
+    let outOfStockItems: any[] = [];
+    const deliveryMethod = form.watch("Delivery_Method");
+    const city = form.watch("City");
+
+    if (deliveryMethod === "Delivery") {
+      deliveryTime = city === "Colombo" ? 5 : 7;
+    }
+
+    // Check for stock status
+    products.forEach((item) => {
+      if (item.Stock === 0) {
+        setNoStockFlag(true);
+        outOfStockItems.push(item.Title);
+      }
+    });
+
+    // Set estimated delivery time
+    if (noStockFlag) {
+      deliveryTime += 3; // Add 3 days for out-of-stock items
+      setNoStockMessage(`Reason for delay: ${outOfStockItems.join(", ")} currently out of stock`);
+    } else {
+      setNoStockFlag(false);
+      setNoStockMessage("");
+    }
+
+    setEstimatedDeliveryTime(deliveryTime);
+  }, [products, form.watch("Delivery_Method"), form.watch("City")]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
-    
+
     // Open the alert dialog on successful submission
     setOpenDialog(true);
   };
@@ -209,9 +293,9 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
             name="Zipcode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Zipcode</FormLabel>
+                <FormLabel>Zip Code</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your zipcode" {...field} />
+                  <Input placeholder="Enter your zip code" {...field} />
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>
@@ -226,6 +310,24 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
                 <FormLabel>Province</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your province" {...field} />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Delivery Method */}
+          <FormField
+            control={form.control}
+            name="Delivery_Method"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Delivery Method</FormLabel>
+                <FormControl>
+                  <select {...field} className="border rounded-md p-2 ml-2">
+                    <option value="Delivery">Delivery</option>
+                    <option value="Store Pickup">Store Pickup</option>
+                  </select>
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>
@@ -324,29 +426,78 @@ export function CheckoutForm({ products, totalPrice, customer }: CheckoutFormPro
             </>
           )}
 
-          {/* Submit Button */}
-          <Button type="submit" className="mt-4">Confirm Order</Button>
+          <Button type="submit" className="mt-4">
+            Proceed to Checkout
+          </Button>
         </form>
-
-        {/* Alert Dialog */}
-        <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Order Confirmation</AlertDialogTitle>
-              <AlertDialogDescription>
-                You have successfully placed your order.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-            <AlertDialogAction asChild>
-            <Link href="/" onClick={() => setOpenDialog(false)}> {/* Close the dialog when navigating */}
-                Go Back Home
-            </Link>
-            </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+      <AlertDialogTrigger asChild>
+        <Button className="hidden">Open Dialog</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Your Order</AlertDialogTitle>
+          <AlertDialogDescription>
+            {noStockFlag && (
+              <>
+                <p>{noStockMessage}</p>
+              </>
+            )}
+            <p>Estimated delivery time: {estimatedDeliveryTime} days</p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel asChild>
+            <Button variant="outline">Cancel</Button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+          <Button
+            onClick={async () => {
+              console.log("Confirm Order button clicked!"); // Check if this runs
+
+              // Gather the form data
+              const values = form.getValues();
+
+              // Ensure paymentType is correctly typed
+              const paymentType = values.Payment_Type === "Card" ? 'Card' : 'Cash On Delivery' as 'Card' | 'Cash On Delivery'; // Type assertion
+
+              const formData = {
+                paymentType,
+                deliveryType: values.Delivery_Method as string, // Adjust if needed
+                houseNo: values.House_No,
+                addressLine1: values.Address_Line1,
+                addressLine2: values.Address_Line2,
+                city: values.City,
+                province: values.Province,
+                zipcode: values.Zipcode,
+              };
+
+              try {
+                // Call the makeOrder function
+                await makeOrder(products, totalPrice, { Customer_ID: customer.Customer_ID }, formData);
+                toast.success("Order confirmed!"); // Show success message
+                
+                // Redirect to home page after a short delay to allow the toast to be seen
+                setTimeout(() => {
+                  router.push('/'); // Redirect to home page
+                }, 2000); // Adjust the delay as needed (2000 ms = 2 seconds)
+
+                setOpenDialog(false); // Close the dialog
+              } catch (error) {
+                console.error("Error making order:", error);
+                toast.error("Failed to confirm order."); // Show error message
+              }
+            }}
+          >
+            Confirm Order
+          </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </Form>
   );
 }
