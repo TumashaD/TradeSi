@@ -73,7 +73,7 @@ export default function GridSection() {
                             Smartwatches
                         </h1>
                         <Button className="mt-4 bg-primarycolour text-white self-center">
-                            <Link href="/categories" className="text-sm">
+                            <Link href="/products" className="text-sm">
                                 See All Categories
                             </Link>
                         </Button>
