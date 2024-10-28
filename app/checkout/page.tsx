@@ -17,7 +17,6 @@ type CartItemDetail = {
 
 const CheckoutPage = () => {
     const [totalPrice, setTotalPrice] = useState(0);
-    const [customerData, setCustomerData] = useState<any>(null);
     const [cartItems, setCartItems] = useState<CartItemDetail[]>([]);
 
     // Retrieve cartItems from local storage on mount
@@ -37,18 +36,6 @@ const CheckoutPage = () => {
 
         setTotalPrice(calculateTotalPrice(cartItems));
     }, [cartItems]);
-
-    // Fetch customer data
-    useEffect(() => {
-        const fetchCustomerData = async () => {
-            const data = await getCurrentUser();
-            if (data) {
-                setCustomerData(data);
-            }
-        };
-
-        fetchCustomerData();
-    }, []);
 
     return (
         <div className="flex h-screen w-full">
@@ -92,7 +79,7 @@ const CheckoutPage = () => {
             {/* Address Form Section */}
             <div className="w-3/5 p-6">
                 <h2 className="text-lg font-medium mb-4">Shipping Details</h2>
-                <CheckoutForm products={cartItems} totalPrice={totalPrice} customer={customerData} />
+                <CheckoutForm products={cartItems} totalPrice={totalPrice} />
             </div>
         </div>
     );

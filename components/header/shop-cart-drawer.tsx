@@ -15,45 +15,41 @@ import { useStore } from "@/store/store";
 import { ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { toast } from "react-hot-toast";
 import { Loader } from "lucide-react";
 import router from "next/router";
+import { getCurrentUser } from "@/lib/services/customer";
+import { getCurrentGuestSession, createGuestSession } from "@/lib/user";
 
 
 // Assuming these functions exist
-import { Cart, getCustomerCart, getCartItems, deleteCartItem, getCartItemsWithDetails } from "@/lib/services/cart"; // Adjust import as necessary
+import { Cart, getCustomerCart, getCartItems, deleteCartItem, getCartItemsWithDetails, getCurrentCart, CartItem, fetchCartData } from "@/lib/services/cart"; // Adjust import as necessary
+import { useCart } from "@/lib/context/cardContext";
 
 export function ShopCartDrawer() {
+    const { itemsInCart , refreshCart, cartId} = useCart();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [itemsInCart, setItemsInCart] = useState<any[]>([]);
-    const [cartId, setCartId] = useState<number>();
     // Define the type for your customer cart response
     // Fetch cart items when the component mounts
-    useEffect(() => {
-        const fetchCartData = async () => {
-            try {
-                const customerCart: number = await getCustomerCart(1);
-                if (customerCart) {
-                    const cartId = customerCart; 
-                    setCartId(cartId);
-                } else {
-                    console.log("No cart found");
-                }
-                if (customerCart){
-                    const cartItems = await getCartItemsWithDetails(customerCart);
-                    console.log("Cart items:", cartItems);
-                    setItemsInCart(cartItems);
-                }
-                
-            } catch (error) {
-                console.error("Error fetching cart data:", error);
-            }
-        };
+    // const loadCartData = async () => {
+    //     try {
+    //       const { cartId, cartItems } = await fetchCartData();
+    //       setCartId(cartId);
+    //       setItemsInCart(cartItems);
+    //     } catch (error) {
+    //       console.error("Error loading cart data:", error);
+    //     }
+    //   };
+    //     useEffect(() => {
+    //         loadCartData();
+    //     }, []);
 
-        fetchCartData();
-    }, []);
+    // useEffect(() => {
+    //     console.log("Cart ID:", cartId);
+    //     console.log("Items in Cart:", itemsInCart);
+    // }, [cartId, itemsInCart]);
 
     const handleRemoveProduct = async (itemId: number) => {
         setIsLoading(true);
@@ -61,7 +57,10 @@ export function ShopCartDrawer() {
             await deleteCartItem(cartId ?? 0, itemId);
             toast.success("Product removed from cart");
             // Reload the page to reflect changes
-            await getCartItems(1); // Re-fetch cart items after removal
+            await refreshCart();
+            if (cartId !== undefined) {
+                await getCartItems(cartId); // Re-fetch cart items after removal
+            }
         } catch (error) {
             toast.error("Failed to remove product");
         } finally {

@@ -26,6 +26,15 @@ export interface ProductData extends RowDataPacket {
     Attribute_Type_Name: string | null;
 }
 
+export interface ItemData extends RowDataPacket {
+    item_id: number;
+    product_id: number;
+    SKU: string;
+    price_increment: number;
+    quantity: number;
+    imageURL: string | null;
+}
+
 export enum ProductCategory {
     Electronics = "electronics",
     Jewelery = "jewelery",

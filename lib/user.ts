@@ -42,6 +42,22 @@ export async function createGuestSession(): Promise<number> {
       [sessionId, createdAt, expiresAt]
     );
 
+    // Set cookie
+    const cookieExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    cookies().set("session", sessionId.toString(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      expires: cookieExpiry,
+      sameSite: "lax",
+    });
+
+    // Create a new cart
+    await db.query<[RowDataPacket[], any]>(
+      `INSERT INTO Cart (Session_ID) VALUES (?)`,
+      [sessionId]
+    );
+
+    console.log('Created guest session:', sessionId);
     return sessionId;
   } catch (error) {
     console.error('Error creating guest session:', error);
@@ -49,8 +65,37 @@ export async function createGuestSession(): Promise<number> {
   }
 }
 
+// get current guest session
+export async function getCurrentGuestSession() {
+  const db = await getDatabase();
+  const sessionIdString = cookies().get("session")?.value;
+  const sessionId = sessionIdString ? parseInt(sessionIdString) : null;
+
+  if (!sessionId) {
+    return null;
+  }
+
+  try {
+    const [sessions] = await db.query<[SessionRow[], any]>(
+      'SELECT * FROM Session WHERE Session_ID = ? AND ExpiresAt > NOW()',
+      [sessionId]
+    );
+
+    console.log('Current guest session:', sessionId);
+
+    if (!sessions.length) {
+      return null;
+    }
+
+    return sessionId;
+  } catch (error) {
+    console.error('Error getting current guest session:', error);
+    return null;
+  }
+}
+
 // Create an authenticated session
-async function createSession(customerId: number): Promise<string> {
+async function createUserSession(customerId: number): Promise<string> {
   const db = await getDatabase();
   const sessionId = Date.now();
   const createdAt = new Date();
@@ -107,7 +152,6 @@ export async function login(formData: FormData) {
         [email]
       );
       const customer = JSON.parse(JSON.stringify(rows[0]));
-      console.log(customer);
 
       const passwordMatch = await verifyPassword(password, customer.Password);
 
@@ -129,8 +173,7 @@ export async function login(formData: FormData) {
         }
   
       // Create session and get token
-      const token = await createSession(customer.Customer_ID);
-      console.log(token);
+      const token = await createUserSession(customer.Customer_ID);
   
       // Set cookie
       const cookieExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -141,6 +184,19 @@ export async function login(formData: FormData) {
         sameSite: "lax",
         path: "/",
       });
+
+      // Create a new cart if the user doesn't have one
+      const [cartRows] = await db.query<[RowDataPacket[], any]>(
+        `SELECT Cart_ID FROM Cart WHERE Customer_ID = ?`,
+        [customer.Customer_ID]
+      );
+
+      if (!cartRows.length) {
+        await db.query<[RowDataPacket[], any]>(
+          `INSERT INTO Cart (Customer_ID) VALUES (?)`,
+          [customer.Customer_ID]
+        );
+      }
       
       return { success: true };
     } catch (error: any) {

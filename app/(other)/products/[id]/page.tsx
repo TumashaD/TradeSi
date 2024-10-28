@@ -7,13 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import { addCartItem, getCustomerCart } from "@/lib/services/cart";
+import { addCartItem, fetchCartData, getCurrentCart, getCustomerCart } from "@/lib/services/cart";
 import { fetchProductData } from "@/lib/services/products";
 import { ProductData } from "@/types/product";
 import { useStore } from "@/store/store";
+import { getCurrentUser } from "@/lib/services/customer";
+import { useCart } from "@/lib/context/cardContext";
 
 
 export default function ProductPage() {
+    const { refreshCart } = useCart();
     const { id } = useParams(); 
     const productId = Array.isArray(id) ? id[0] : id;
     const [productData, setProductData] = useState<ProductData[] | null>(null);
@@ -113,13 +116,22 @@ export default function ProductPage() {
             const TotalPrice = (price * quantity).toFixed(2);
             console.log("Total Price:", TotalPrice);
 
-            const customerCart: number | null = await getCustomerCart(1);
+            const customerCart = await getCurrentCart();
             console.log("Customer Cart:", customerCart);
             if (customerCart) {
                 await addCartItem(customerCart, selectedItemId, quantity, parseFloat(TotalPrice));
-            } else {
-                console.error("No cart found");
-            }
+                console.log("Added to cart");
+
+                  // Refresh cart data
+      try {
+        await refreshCart();
+      } catch (error) {
+        console.error("Error refreshing cart data:", error);
+      }
+    } else {
+      console.error("No cart found");
+    }
+             
 
             // const addProduct = useStore().addProduct(selectedItemId, quantity);
             toast({

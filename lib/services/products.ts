@@ -35,7 +35,6 @@ export async function getProducts(
             const [rows] = await connection.query<any>(
                 "call SearchProducts(?)", [query]
             );
-            console.log("query executed");
             data = JSON.parse(JSON.stringify(rows[0]));
         }
 
