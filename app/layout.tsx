@@ -9,9 +9,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 // metadata for html head to improve SEO
 export const metadata: Metadata = {
-    title: "Spectrum Store - Your One-Stop Shop",
+    title: "TradeSi - Your One-Stop Shop",
     description:
-        "Discover a spectrum of possibilities with our wide range of products. Spectrum Store, your one-stop shop for all your needs.",
+        "Discover a spectrum of possibilities with our wide range of products. TradeSi, your one-stop shop for all your needs.",
     openGraph: {
         type: "website",
     },

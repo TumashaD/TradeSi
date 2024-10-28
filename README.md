@@ -3,7 +3,7 @@
 
 <img src="logo.png" alt="Alt text" width="300" height="250">
 
-<h1 align="center" >Spectrum Store</h1>
+<h1 align="center" >TradeSi</h1>
 
 ![cntr](https://img.shields.io/github/contributors/issam-seghir/spectrum-store?color=pink&style=for-the-badge)
 ![pullreQ](https://img.shields.io/github/issues-pr/issam-seghir/spectrum-store?color=orange&style=for-the-badge)
@@ -16,7 +16,7 @@
 
   <p align="center">
 
-  **Spectrum Store | A Robust E-commerce Platform Powered by Next.js, TypeScript, and Shadcn**
+  **TradeSi  | A Robust E-commerce Platform Powered by Next.js, TypeScript, and Shadcn**
 
   **That leverages the [Fake Store API](https://fakestoreapi.com), It features an Admin dashboard and JWT auth.**
 

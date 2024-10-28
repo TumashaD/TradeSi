@@ -6,7 +6,7 @@ import BackButton  from "@/components/admin/back-button";
 import AdminMobileMenu from "../../components/layout/admin-mobile-nav";
 // metadata
 export const metadata: Metadata = {
-    title: "Spectrum Store | Admin Dashboard",
+    title: "TradeSi | Admin Dashboard",
 };
 
 export default function RootLayout({

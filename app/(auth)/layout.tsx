@@ -6,9 +6,9 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-    title: "Spectrum Store - Login",
+    title: "TradeSi - Login",
     description:
-        "Log in to your Spectrum Store account to start shopping or manage your orders.",
+        "Log in to your TradeSi account to start shopping or manage your orders.",
 };
 
 export default function AuthLayout({
