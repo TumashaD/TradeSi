@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast"; // Import the Toaster component
 import BackButton from "@/components/admin/back-button";
 import { getCurrentUser } from "@/lib/services/customer"; // Import your server-side data fetching logic
 import { User } from "@/types/user";
+import CardManager from "./FullScreenCardManager";
+
 
 const ProfilePage = async () => {
   // Fetch customer data on the server
@@ -25,7 +27,12 @@ const ProfilePage = async () => {
       {/* Main content container */} 
       <div className="flex-grow px-8">
         {/* Pass customer data to the ProfileForm component */}
-        <ProfileForm user={user} />
+        <div className="mb-6"> {/* Add margin-bottom here */}
+          <ProfileForm user={user} />
+        </div>
+        <div className="mt-6 mb-6"> {/* Add margin-bottom here */}
+          <CardManager customerId={user.id} />
+        </div>
       </div>
     </div>
   );

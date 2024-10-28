@@ -2,6 +2,7 @@
 
 import { verifySession } from "../dal";
 import { User, CustomerRow } from "@/types/user";
+import { CardDetail } from "@/types/card";
 import axios from "axios";
 import getDatabase from '@/lib/db';
 import { Customer, CustomerOrderReport, Order, QuarterlySales } from "@/types/admin";
@@ -265,3 +266,113 @@ export async function createGuestCustomer(customerData: any): Promise<User> {
         throw error;
     }
 }
+
+export async function getCardDetails(Customer_ID: number): Promise<CardDetail | null> {
+    try {
+        const connection = await getDatabase();
+
+        const [rows] = await connection.query<any>(
+            `SELECT 
+                Card_ID as cardId, 
+                Customer_ID as customerId, 
+                Card_Number as cardNumber, 
+                Name_On_Card as nameOnCard, 
+                Expiry_Date as expiryDate 
+             FROM Card_Details 
+             WHERE Customer_ID = ?`, 
+            [Customer_ID]
+        );
+
+        if (rows.length === 0) {
+            console.log(`No card details found for Customer_ID ${Customer_ID}`);
+            return null;
+        }
+
+        return rows[0];
+    } catch (error) {
+        console.error("Failed to get card details:", error);
+        return null;
+    }
+}
+
+export async function addCard(
+    Customer_ID: number,
+    Card_Number: bigint,
+    Name_On_Card: string,
+    Expiry_Date: string
+): Promise<{ success: boolean; message: string }> {  
+    try {
+        const connection = await getDatabase();
+
+        const query = `
+            INSERT INTO Card_Details (
+                Customer_ID, 
+                Card_Number, 
+                Name_On_Card, 
+                Expiry_Date
+            ) VALUES (?, ?, ?, ?)
+        `;
+
+        const values = [Customer_ID, Card_Number, Name_On_Card, Expiry_Date];
+
+        // Execute the query
+        const [result] = await connection.query<any>(query, values);
+
+        // Check if the insert was successful
+        if (result.affectedRows > 0) {
+            return { success: true, message: "Card added successfully." };
+        } else {
+            return { success: false, message: "Failed to add card." };
+        }
+    } catch (error) {
+        console.error("Failed to add card:", error);
+        return { success: false, message: "An error occurred while adding the card." };
+    }
+}
+
+export async function updateCard(
+    Card_ID: number,
+    Customer_ID: number,
+    Card_Number: bigint,
+    Name_On_Card: string,
+    Expiry_Date: string
+): Promise<{ success: boolean; message: string }> {
+    try {
+        const connection = await getDatabase();
+
+        const query = `
+            UPDATE Card_Details 
+            SET 
+                Card_Number = ?, 
+                Name_On_Card = ?, 
+                Expiry_Date = ? 
+            WHERE 
+                Card_ID = ? AND 
+                Customer_ID = ?
+        `;
+
+        const values = [Card_Number, Name_On_Card, Expiry_Date, Card_ID, Customer_ID];
+
+        const [result] = await connection.query<any>(query, values);
+
+        if (result.affectedRows === 0) {
+            return {
+                success: false,
+                message: `No card found with Card_ID ${Card_ID} and Customer_ID ${Customer_ID}`
+            };
+        }
+
+        return {
+            success: true,
+            message: "Card updated successfully"
+        };
+    } catch (error) {
+        console.error("Failed to update card:", error);
+        return {
+            success: false,
+            message: "Failed to update card"
+        };
+    }
+}
+
+
