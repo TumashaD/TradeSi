@@ -1,7 +1,7 @@
 <div align="center">
 
 
-<img src="logo.png" alt="Alt text" width="300" height="250">
+<img src="TradeSi.png" alt="Alt text" width="300" height="250">
 
 <h1 align="center" >TradeSi</h1>
 
@@ -157,3 +157,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <a href="https://www.buymeacoffee.com/issam.seghir" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy ma A Coffee" style="width: 174px !important;height: 41px !important;box-shadow: 0 3px 2px 0 rgb(190 190 190 / 50%) !important;" ></a>
 </div>
+
+## Acknowledgements
+
+Front-end template inspired by [issam-seghir](https://github.com/issam-seghir/spectrum-store.git)
