@@ -11,7 +11,7 @@ export default function GridSection() {
         <section className="flex items-center justify-center mx-[5%] sm:p-8">
             <div className="grid gap-4 lg:grid-cols-2 w-full">
                 {/* Mobile Phones section */}
-                <Link href="/products?query=phones">
+                <Link href="/products?query=Smartphones">
                     <div className="flex flex-col  rounded-lg bg-primarycolour p-6 justify-center">
 
                         <img

@@ -54,9 +54,11 @@ export default function ProductCard({ product }: { product: Product }) {
                     </abbr>
                 </p>
 
-                <span className="w-fit rounded-md bg-[#DAC0A3] p-2 text-xs font-medium capitalize dark:bg-background">
-                    {product.category}
-                </span>
+                <Link href={`/products?category=${product.category}`}>
+                    <span className="w-fit rounded-md bg-[#DAC0A3] p-2 text-xs font-medium capitalize dark:bg-background">
+                        {product.category}
+                    </span>
+                </Link>
 
                 <div className="flex items-baseline justify-between">
                     <p className="text-base font-bold leading-none">
