@@ -8,7 +8,7 @@ import { Toaster } from 'react-hot-toast';
 type CartItemDetail = {
     Item_ID: number;
     Quantity: number;
-    Price: number;
+    Price: string;
     Product_ID: number;
     imageURL: string;
     Title: string;
@@ -28,10 +28,10 @@ const CheckoutPage = () => {
         }
     }, []);
 
-    // Calculate total price whenever cartItems change
+    // Calculate total price whenever cartItems change    
     useEffect(() => {
         const calculateTotalPrice = (items: CartItemDetail[]) => {
-            return items.reduce((total, item) => total + item.Price, 0);
+            return items.reduce((total, item) => total + parseFloat(item.Price), 0);
         };
 
         setTotalPrice(calculateTotalPrice(cartItems));

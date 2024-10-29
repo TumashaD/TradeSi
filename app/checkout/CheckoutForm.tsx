@@ -31,7 +31,7 @@ import {
 import Link from "next/link"; // Import the Link component
 import { GetCard, makeOrder } from "@/lib/services/order";
 import { User } from '@/types/user';
-import { createGuestCustomer, getCurrentUser } from '@/lib/services/customer';
+import { createGuestCustomer, getCardDetails, getCurrentUser } from '@/lib/services/customer';
 import { getCustomerCart } from '@/lib/services/cart';
 
 
@@ -81,17 +81,18 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
         const customer = await getCurrentUser();
         setCustomer(customer);
         if (customer?.id !== undefined) {
-          const cardDetails = await GetCard(customer?.id);
-          setCard(cardDetails[0] || null);
+          const cardDetails = await getCardDetails(customer?.id);
+          console.log("Card details:", cardDetails);
+          setCard(cardDetails);
         }
-        // Assuming you want to use the first card if there are multiple
-        setCard(card[0] || null); 
+        // // Assuming you want to use the first card if there are multiple
+        // setCard(card[0] || null); 
       } catch (error) {
         console.error("Failed to fetch card details:", error);
       }
     };
       fetchCard();
-  }, [customer]);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -136,7 +137,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
         CVV: "",
       });
     }
-  }, [customer, form]);
+  }, [customer]);
 
   // Check stock and set delivery time
   useEffect(() => {
