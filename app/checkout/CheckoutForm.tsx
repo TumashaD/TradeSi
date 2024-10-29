@@ -63,6 +63,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
+  console.log("Products:", products);
   const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
@@ -157,15 +158,18 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
         outOfStockItems.push(item.Title);
       }
     });
-
+    
     // Set estimated delivery time
-    if (noStockFlag) {
-      deliveryTime += 3; // Add 3 days for out-of-stock items
-      setNoStockMessage(`Reason for delay: ${outOfStockItems.join(", ")} currently out of stock`);
-    } else {
-      setNoStockFlag(false);
-      setNoStockMessage("");
-    }
+    products.forEach((item) => {
+      console.log("stock:",item.Stock );
+      if (item.Stock === 0) {
+        deliveryTime += 3; // Add 3 days for out-of-stock items
+        setNoStockMessage(`Reason for delay: ${outOfStockItems.join(", ")} currently out of stock`);
+      } else {
+        setNoStockFlag(false);
+        setNoStockMessage("");
+      }
+    });
 
     setEstimatedDeliveryTime(deliveryTime);
   }, [products, form.watch("Delivery_Method"), form.watch("City")]);
