@@ -106,17 +106,18 @@ const DashboardClient = () => {
                 <div className="grid gap-4 md:grid-cols-3">
                     <SummaryCard
                         title="Total Revenue"
-                        amount={`$${totalRevenue}`}
+                        amount={totalRevenue}
+                        amountType="currency"
                         logo={<DollarSign />}
                     />
                     <SummaryCard
                         title="Total Orders"
-                        amount={totalOrders.toString()}
+                        amount={totalOrders}
                         logo={<ShoppingBag />}
                     />
                     <SummaryCard
                         title="Total Customers"
-                        amount={totalCustomers.toString()}
+                        amount={totalCustomers}
                         logo={<Users />}
                     />
                 </div>

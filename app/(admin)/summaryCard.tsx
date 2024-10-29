@@ -3,11 +3,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface SummaryCardProps {
     title: string;
-    amount: string;
+    amount: number;
+    amountType?: string;
     logo: React.ReactNode;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, amount ,logo}) => {
+const SummaryCard: React.FC<SummaryCardProps> = ({ title, amount ,amountType,logo}) => {
+    if (amountType === "currency") {
+        amount = parseFloat(amount.toFixed(2));
+    }
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
