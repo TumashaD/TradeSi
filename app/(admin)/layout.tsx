@@ -4,16 +4,22 @@ import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import BackButton  from "@/components/admin/back-button";
 import AdminMobileMenu from "../../components/layout/admin-mobile-nav";
+import { verifySession } from "@/lib/dal";
+import { redirect } from "next/navigation";
 // metadata
 export const metadata: Metadata = {
     title: "TradeSi | Admin Dashboard",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const session = await verifySession();
+    if (!session || !session.isAdmin) {
+        redirect("/");
+    }
     return (
         <>
             <Toaster />
