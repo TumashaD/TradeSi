@@ -131,19 +131,20 @@ const CustomerOrderReport = () => {
             <div className="grid gap-4 md:grid-cols-3">
                 <SummaryCard
                     title="Total Customers"
-                    amount={totalCustomers.toString()}
+                    amount={totalCustomers}
                     logo={<Users />}
                 />
 
                 <SummaryCard
                     title="Total Orders"
-                    amount={totalOrders.toString()}
+                    amount={totalOrders}
                     logo={<ShoppingCart />}
                 />
 
                 <SummaryCard
                     title="Average Order Value"
-                    amount={`$${avgOrderValue}`}
+                    amount={avgOrderValue}
+                    amountType="currency"
                     logo={<DollarSign />}
                 />
             </div>
