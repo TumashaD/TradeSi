@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 class Database {
+    execute(query: string, values: (string | number | bigint)[]): [any] | PromiseLike<[any]> {
+        throw new Error("Method not implemented.");
+    }
     private static instance: Database;
     private pool: Pool;
     private isInitialized: boolean = false;
