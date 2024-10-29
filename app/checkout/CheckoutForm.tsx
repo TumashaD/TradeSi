@@ -63,7 +63,6 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
-  console.log("Products:", products);
   const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
@@ -72,6 +71,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
   const [noStockMessage, setNoStockMessage] = useState("");
   const [card, setCard] = useState<any | null>(null);
   const [customer, setCustomer] = useState<User | null>(null);
+  console.log("Products: ",products);
   
   
 
