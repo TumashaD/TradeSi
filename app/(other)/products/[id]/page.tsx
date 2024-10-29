@@ -22,6 +22,7 @@ export default function ProductPage() {
     const [productData, setProductData] = useState<ProductData[] | null>(null);
     const [price, setPrice] = useState(0);
     const [stock, setStock] = useState(0);
+    const [ImageURL, setImageURL] = useState<string>();
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
@@ -30,6 +31,7 @@ export default function ProductPage() {
     const [attributeMap, setAttributeMap] = useState<Map<string, string[]>>(new Map());
     const [selectedAttributes, setSelectedAttributes] = useState<Map<string, string>>(new Map());
     const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+
 
     useEffect(() => {
         if (productId) {
@@ -56,6 +58,7 @@ export default function ProductPage() {
                             setSelectedItemId(defaultRow.item_id);
                             setPrice(parseFloat(defaultRow.Base_price) + parseFloat(defaultRow.price_increment));
                             setStock(defaultRow.quantity || 0);
+                            setImageURL(defaultRow.image_url);
                             setAttributeArray([...newAttributeMap.keys()]);
                         }
 
@@ -97,15 +100,18 @@ export default function ProductPage() {
                 setSelectedItemId(matchedItem.item_id);
                 setPrice(parseFloat(matchedItem.Base_price) + parseFloat(matchedItem.price_increment));
                 setStock(matchedItem.quantity || 0);
+                setImageURL(matchedItem.imageURL || '');
                 return;
             }
         }
     
         // If no match is found, set defaults for unavailable combination
+        
         setSelectedItemId(null);
         setPrice(-1);
         setStock(-1);
     };
+    
     
     // When Add to Cart is clicked, log the selected item_id and quantity if available
     const handleAddToCart = async () => {
@@ -155,11 +161,12 @@ export default function ProductPage() {
     }
 
     return (
+        console.log("ImageURL: ", ImageURL),
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <div className="space-y-4">
                     <img
-                        src={productData[0].imageURL || "/placeholder.svg"}
+                        src={ImageURL || productData[0]?.imageURL || "/placeholder.svg"}
                         alt={productData[0].Title}
                         className="w-full h-auto rounded-lg shadow-lg"
                     />

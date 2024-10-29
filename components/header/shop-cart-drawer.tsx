@@ -155,7 +155,8 @@ export function ShopCartDrawer() {
                         variant="default"
                         size="lg"
                         onClick={() => {
-                            localStorage.setItem("cartItems", JSON.stringify(itemsInCart)); // Save cartItems to local storage
+                            console.log("Products in local",itemsInCart);
+                            localStorage.setItem("cartItems", JSON.stringify(itemsInCart)); // Save cartItems to local storag
                             router.push(`/checkout`); // Navigate to the checkout page
                         }}
                     >
