@@ -13,6 +13,7 @@ type CartItemDetail = {
     imageURL: string;
     Title: string;
     Description: string;
+    Stock: number;
 };
 
 const CheckoutPage = () => {
@@ -24,6 +25,7 @@ const CheckoutPage = () => {
         const storedCartItems = localStorage.getItem("cartItems");
         if (storedCartItems) {
             const parsedCartItems = JSON.parse(storedCartItems);
+            console.log("Parsed CartItems: ", parsedCartItems);
             setCartItems(parsedCartItems);
         }
     }, []);

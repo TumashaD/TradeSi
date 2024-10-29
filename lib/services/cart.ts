@@ -61,6 +61,7 @@ export interface CartItem extends RowDataPacket {
     Quantity: number;
     Price: number;
     ImageURL: string;
+    Stock: number;
 }
 
 /**
@@ -72,7 +73,7 @@ export async function getCartItems(cartId: number): Promise<CartItem[]> {
     try {
         const connection = await getDatabase();
         const [rows] = await connection.query<any>(
-            `SELECT i.Item_ID, p.Product_ID, p.Title,ci.Quantity,ci.Price,i.imageURL 
+            `SELECT i.Item_ID, p.Product_ID, p.Title,ci.Quantity,ci.Price,i.imageURL,i.quantity as Stock
             FROM Cart_Item ci 
             JOIN Item i ON ci.Item_ID = i.item_id
             JOIN Product p ON i.product_id = p.Product_ID
@@ -91,6 +92,7 @@ export interface CartItemDetail extends RowDataPacket {
     Item_ID: number;
     Quantity: number;
     Price: number;
+    Stock: number;
 }
 
 export async function getCartItemsWithDetails(cartId: number): Promise<CartItemDetail[]> {
