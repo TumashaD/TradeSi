@@ -164,7 +164,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
       console.log("stock:",item.Stock );
       if (item.Stock === 0) {
         deliveryTime += 3; // Add 3 days for out-of-stock items
-        setNoStockMessage(`Reason for delay: ${outOfStockItems.join(", ")} currently out of stock`);
+        setNoStockMessage(`Reason for delay: The variant you wanted for ${outOfStockItems.join(", ")} currently out of stock 😕`);
       } else {
         setNoStockFlag(false);
         setNoStockMessage("");
