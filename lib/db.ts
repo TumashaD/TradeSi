@@ -31,12 +31,13 @@ class Database {
             user: DB_USER,
             password: DB_PASSWORD,
             database: DB_DATABASE,
-            waitForConnections: true,
-            connectionLimit: 10,
-            queueLimit: 0,
-            enableKeepAlive: true,
-            keepAliveInitialDelay: 0,
-            connectTimeout: 15000,
+            // waitForConnections: true,
+            // connectionLimit: 10,
+            // queueLimit: 0,
+            // enableKeepAlive: true,
+            // keepAliveInitialDelay: 0,
+            // connectTimeout: 15000,
+            multipleStatements: true,
         });
     }
 
