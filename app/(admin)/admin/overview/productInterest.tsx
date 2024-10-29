@@ -46,24 +46,6 @@ const ProductInterestAnalysis: React.FC<ProductInterestAnalysisProps> = ({ year 
     fetchInterestData();
   }, [selectedProduct, year]);
 
-  
-  // Mock data - In real app, this would come from your API
-//   const products = [
-//     { id: '1', name: 'iPhone 14' },
-//     { id: '2', name: 'Samsung Galaxy S23' },
-//     { id: '3', name: 'MacBook Pro' },
-//     { id: '4', name: 'PlayStation 5' },
-//     { id: '5', name: 'AirPods Pro' }
-//   ];
-
-  // Mock interest data - In real app, this would come from your API based on the query
-//   const interestData = [
-//     { period: 'Jan 2024', orders: 12 },
-//     { period: 'Feb 2024', orders: 18 },
-//     { period: 'Mar 2024', orders: 15 },
-//     { period: 'Apr 2024', orders: 25 },
-//     { period: 'May 2024', orders: 20 }
-//   ];
 
   // Find peak period
   const peakPeriod = interestData.find(row => row.is_peak_period);

@@ -1,15 +1,18 @@
-import mysql, { Pool, PoolConnection, Connection } from 'mysql2/promise';
+import mysql, { Pool, PoolConnection } from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { cache } from 'react';
+
 
 dotenv.config();
 
+// Declare global type
+declare global {
+    var dbInstance: Database | undefined;
+    var dbInitPromise: Promise<void> | undefined;
+}
+
 class Database {
-    execute(query: string, values: (string | number | bigint)[]): [any] | PromiseLike<[any]> {
-        throw new Error("Method not implemented.");
-    }
-    private static instance: Database;
     private pool: Pool;
-    private isInitialized: boolean = false;
 
     private constructor() {
         const {
@@ -20,7 +23,6 @@ class Database {
             DB_DATABASE
         } = process.env;
 
-        // Validate environment variables
         if (!DB_HOSTNAME || !DB_USER || !DB_PASSWORD || !DB_DATABASE) {
             throw new Error('Missing required database configuration environment variables');
         }
@@ -31,72 +33,74 @@ class Database {
             user: DB_USER,
             password: DB_PASSWORD,
             database: DB_DATABASE,
-            // waitForConnections: true,
-            // connectionLimit: 10,
-            // queueLimit: 0,
-            // enableKeepAlive: true,
-            // keepAliveInitialDelay: 0,
-            // connectTimeout: 15000,
             multipleStatements: true,
         });
     }
 
-    public static getInstance(): Database {
-        if (!Database.instance) {
-            Database.instance = new Database();
+    public static async getInstance(): Promise<Database> {
+        if (!global.dbInstance) {
+            global.dbInstance = new Database();
+            console.log('Database instance created..................');
         }
-        return Database.instance;
+
+        // Initialize if not already doing so
+        if (!global.dbInitPromise) {
+            global.dbInitPromise = global.dbInstance.initialize();
+        }
+
+        // Wait for initialization to complete
+        await global.dbInitPromise;
+        return global.dbInstance;
     }
 
-    public async initialize(): Promise<void> {
-        if (this.isInitialized) return;
-
+    private async initialize(): Promise<void> {
         try {
-            // Test the connection
             const connection = await this.pool.getConnection();
             console.log('Database connection pool established successfully.');
             connection.release();
-            this.isInitialized = true;
         } catch (error) {
             console.error('Failed to initialize database connection pool:', error);
+            // Reset the initialization promise so we can try again
+            global.dbInitPromise = undefined;
             throw error;
         }
     }
 
-    public async getConnection(): Promise<PoolConnection> {
-        if (!this.isInitialized) {
-            await this.initialize();
-        }
-        return this.pool.getConnection();
-    }
-
-    public async query<T extends [mysql.RowDataPacket[], mysql.ResultSetHeader]>(sql: string, values?: any[]): Promise<[T, any]> {
-        let connection: PoolConnection | null = null;
+    public async query<T extends [mysql.RowDataPacket[], mysql.ResultSetHeader]>(
+        sql: string, 
+        values?: any[]
+    ): Promise<[T, any]> {
+        const connection = await this.pool.getConnection();
         try {
-            connection = await this.getConnection();
             const result = await connection.query<T>(sql, values);
             return result;
         } catch (error) {
             console.error('Error executing query:', error);
             throw error;
         } finally {
-            if (connection) connection.release();
+            connection.release();
         }
     }
 
     public async end(): Promise<void> {
         if (this.pool) {
             await this.pool.end();
-            this.isInitialized = false;
+            global.dbInitPromise = undefined;
+            global.dbInstance = undefined;
         }
     }
 }
 
+// Development vs Production check
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 // Export a function to get a database instance
 const getDatabase = async (): Promise<Database> => {
-    const db = Database.getInstance();
-    await db.initialize();
-    return db;
+    // In development, warn about connection pool recreation
+    if (isDevelopment && !global.dbInstance) {
+        console.warn('Creating new database connection pool in development mode');
+    }
+    return Database.getInstance();
 };
 
 export default getDatabase;

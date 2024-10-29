@@ -40,7 +40,7 @@ export async function getAvgOrderValue(): Promise<number | null> {
     } catch (error) {
         console.error('Failed to fetch orders:', error);
         return null;
-    }
+    } 
 }
 
 export async function getCustomerOrderReport(): Promise<CustomerOrderReport | null> {
