@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useRouter } from 'next/navigation'
-import { createGuestSession } from '@/lib/user'
 
 export default function DialogPop() {
   const [isOpen, setIsOpen] = useState(true)
@@ -25,7 +24,6 @@ export default function DialogPop() {
 
   const handleGuest = () => {
     console.log('Continue as guest clicked')
-    createGuestSession()
     router.push('/')
     setIsOpen(false)
   }

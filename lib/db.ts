@@ -2,7 +2,6 @@ import mysql, { Pool, PoolConnection } from 'mysql2/promise';
 import dotenv from 'dotenv';
 import { cache } from 'react';
 
-
 dotenv.config();
 
 // Declare global type

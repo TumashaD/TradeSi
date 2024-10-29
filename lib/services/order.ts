@@ -2,6 +2,7 @@
 
 import getDatabase from '@/lib/db';
 import { getCustomerCart } from './cart';
+import { getCurrentGuestSession } from '../user';
 
 export async function makeOrder(
     products: { Item_ID: bigint; Quantity: number }[], // Adjust type as needed
@@ -19,6 +20,7 @@ export async function makeOrder(
     }
 ): Promise<void> {
     const connection = await getDatabase(); // Await the connection to the database
+    const currentSession = await getCurrentGuestSession();
 
     try {
         // Step 1: Insert into Payment Table
@@ -55,12 +57,12 @@ export async function makeOrder(
             ]);
         }
 
-
-        // get the cart id
-        const cartId = await getCustomerCart(customer.Customer_ID, true);
-        // delete the cart items
-        await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ?', [cartId]);
-
+        const cartIdCustomer = await getCustomerCart(customer.Customer_ID, true);
+        // get the cart id of the session
+        if (currentSession) {
+            const cartIdSession = await getCustomerCart(currentSession, false);
+            await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ? OR ?', [cartIdCustomer, cartIdSession]);
+        }
 
     } catch (error) {
         console.error('Failed to create order:', error);
