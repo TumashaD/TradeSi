@@ -28,14 +28,7 @@ export function MainNav({
             href: `/admin/orders`,
             label: "Orders",
             active: pathname === `/admin/orders`,
-        },
-        {
-            href: ``,
-            label: "Settings",
-            active: pathname === `/admin/settings`,
-            onClick: () =>
-                toast("🛠 Settings page is currently under development."),
-        },
+        }
     ];
 
     return (
@@ -56,7 +49,6 @@ export function MainNav({
                             ? "text-black dark:text-white"
                             : "text-muted-foreground",
                     )}
-                    onClick={route.onClick}
                 >
                     {route.label}
                 </Link>

@@ -19,7 +19,7 @@ export default function LogInPage() {
             const response = await login(formData);
             if (!response.errors) {
                 toast.success("Logged in successfully.");
-                router.push("/");
+                router.replace("/");
             }
             if (response.errors?.email) {
                 toast.error(response.errors.email.toString());

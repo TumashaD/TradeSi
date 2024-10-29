@@ -119,10 +119,6 @@ const CustomerOrderReport = () => {
                         behavior
                     </p>
                 </div>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Report
-                </Button>
             </div>
 
             <Separator />
@@ -161,17 +157,6 @@ const CustomerOrderReport = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <Select value={timeFrame} onValueChange={setTimeFrame}>
-                        <SelectTrigger className="w-36">
-                            <SelectValue placeholder="Time period" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="7days">Last 7 days</SelectItem>
-                            <SelectItem value="30days">Last 30 days</SelectItem>
-                            <SelectItem value="90days">Last 90 days</SelectItem>
-                            <SelectItem value="year">Last year</SelectItem>
-                        </SelectContent>
-                    </Select>
                     <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Sort by" />
@@ -192,9 +177,6 @@ const CustomerOrderReport = () => {
                         </SelectContent>
                     </Select>
                 </div>
-                <Button variant="outline" size="icon">
-                    <SlidersHorizontal className="h-4 w-4" />
-                </Button>
             </div>
 
             {/* Customer Table */}

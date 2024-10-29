@@ -34,7 +34,7 @@ const ProfilePage = async () => {
         <div className="mb-6"> {/* Add margin-bottom here */}
           <ProfileForm user={user} />
         </div>
-        <div className="flex gap-16"> {/* Add margin-bottom here */}
+        <div className="flex gap-16 mb-4"> {/* Add margin-bottom here */}
           <CardManager customerId={user.id} />
           <ProfileOrders orders={ordersArray} />
         </div>

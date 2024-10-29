@@ -121,7 +121,7 @@ export default function CardManager({ customerId }: { customerId: number }) {
     };
 
   return (
-    <Card className="w-full max-w-md shadow-lg p-4"> {/* Adjusted container for sizing */}
+    <Card className="w-full max-w-md p-4"> {/* Adjusted container for sizing */}
       <CardHeader className="space-y-1">
         <CardTitle className="text-3xl font-bold flex items-center space-x-2">
           <CreditCard className="h-8 w-8" />

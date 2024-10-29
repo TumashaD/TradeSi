@@ -33,6 +33,8 @@ import { GetCard, makeOrder } from "@/lib/services/order";
 import { User } from '@/types/user';
 import { createGuestCustomer, getCardDetails, getCurrentUser } from '@/lib/services/customer';
 import { getCustomerCart } from '@/lib/services/cart';
+import { useCart } from '@/lib/context/cardContext';
+
 
 
 
@@ -63,6 +65,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
+  const {refreshCart} = useCart();
   const router = useRouter();
   const [showCVV, setShowCVV] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // State for the alert dialog
@@ -505,10 +508,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
                     await makeOrder(products, totalPrice, { Customer_ID: guest.id }, formData);
                   } else {
                     throw new Error("Guest customer ID is undefined");
-                  }
-                  // Toast success message
-                  toast.success("Order placed successfully!");
-                  router.push("/"); // Redirect to home page
+                  }                
                 }
                 else {
                   // Call makeOrder with the authenticated customer
@@ -517,10 +517,11 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
                   } else {
                     throw new Error("Customer ID is undefined");
                   }
-                  // Toast success message
-                  toast.success("Order placed successfully!");
-                  router.push("/"); // Redirect to home page
                 }
+                 // Toast success message
+                 toast.success("Order placed successfully!");
+                 await refreshCart();
+                 router.replace("/"); 
 
               } catch (error) {
                 console.error("Failed to create guest customer:", error);

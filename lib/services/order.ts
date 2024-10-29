@@ -29,7 +29,7 @@ export async function makeOrder(
         const paymentId = (paymentResult as any).insertId; // Access insertId from the result
 
         // Step 2: Insert into Delivery Table
-        const [deliveryResult] = await connection.query<any>('INSERT INTO Delivery (Deliverey_type, Status) VALUES (?, ?)', [formData.deliveryType, 'Processing']);
+        const [deliveryResult] = await connection.query<any>('INSERT INTO Delivery (Delivery_type, Status) VALUES (?, ?)', [formData.deliveryType, 'Processing']);
         const deliveryId = (deliveryResult as any).insertId; // Access insertId from the result
         const currentDateTime = new Date();
 
@@ -91,6 +91,20 @@ export async function GetCard(customerId: number): Promise<Array<{ Card_ID: numb
         }));
     } catch (error) {
         console.error('Failed to retrieve card details:', error);
+        throw error; // Handle or rethrow as needed
+    }
+}
+
+export async function updateDeliveryStatus(orderId: number, status: string): Promise<void> {
+    const connection = await getDatabase(); // Await the connection to the database
+
+    try {
+        await connection.query<any>(`UPDATE Delivery d
+JOIN TradeSi.Order o ON d.Delivery_ID = o.Delivery_ID
+SET d.Status = ?
+WHERE o.Order_ID = ?;`, [status, orderId]);
+    } catch (error) {
+        console.error('Failed to update delivery status:', error);
         throw error; // Handle or rethrow as needed
     }
 }

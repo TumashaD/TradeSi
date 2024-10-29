@@ -48,24 +48,34 @@ const ChartBar: React.FC<ChartBar> = ({
                                 type={yaxisType} 
                                 tick={yAxisDataKey === "topProductName" ? { fontSize: 11 } : undefined}
                             />
-                            <Tooltip formatter={(value, name, props) => {
-                                if (name === "quarterlySales") {
-                                    const { payload } = props;
-                                    return [
-                                        <div className="flex flex-col">
-                                            <span>Total Orders: {payload.total_orders}</span>
-                                            <span>Total Revenue: ${value}</span>
-                                        </div>
-                                    ];
-                                }
-                                if (name === "topSellingProducts") {
-                                    return [
-                                        <div className="flex flex-col">
-                                            <span>Total Sold: {value}</span>
-                                        </div>
-                                    ];
-                                }
-                            }} />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: "#333", color: "#fff" }} 
+                                formatter={(value, name, props) => {
+                                    if (name === "quarterlySales") {
+                                        const { payload } = props;
+                                        return [
+                                            <div className="flex flex-col">
+                                                <span>Total Orders: {payload.total_orders}</span>
+                                                <span>Total Revenue: ${value}</span>
+                                            </div>
+                                        ];
+                                    }
+                                    if (name === "topSellingProducts") {
+                                        return [
+                                            <div className="flex flex-col">
+                                                <span>Total Sold: {value}</span>
+                                            </div>
+                                        ];
+                                    }
+                                    if (name === "orders") {
+                                        return [
+                                            <div className="flex flex-col">
+                                                <span>Total Orders: {value}</span>
+                                            </div>
+                                        ];
+                                    }
+                                }} 
+                            />
                             <Bar dataKey={barDataKey} fill={barFill} />
                         </BarChart>
                     </ResponsiveContainer>
