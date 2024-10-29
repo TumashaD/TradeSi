@@ -28,7 +28,7 @@ const CheckoutPage = () => {
         }
     }, []);
 
-    // Calculate total price whenever cartItems change
+    // Calculate total price whenever cartItems change    
     useEffect(() => {
         const calculateTotalPrice = (items: CartItemDetail[]) => {
             return items.reduce((total, item) => total + parseFloat(item.Price), 0);

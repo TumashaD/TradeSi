@@ -83,10 +83,10 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
         if (customer?.id !== undefined) {
           const cardDetails = await getCardDetails(customer?.id);
           console.log("Card details:", cardDetails);
-          setCard(cardDetails || null);
+          setCard(cardDetails);
         }
-        // Assuming you want to use the first card if there are multiple
-        setCard(card[0] || null); 
+        // // Assuming you want to use the first card if there are multiple
+        // setCard(card[0] || null); 
       } catch (error) {
         console.error("Failed to fetch card details:", error);
       }
@@ -117,7 +117,6 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
   });
 
   useEffect(() => {
-    console.log("Card:",card?.Card_Number);
     if (customer) {
       form.reset({
         First_Name: customer?.firstName || "",
