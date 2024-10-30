@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import Image from 'next/image';
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,7 +77,7 @@ export default function ProductPage() {
             };
             fetchData();
         }
-    }, [productId]);
+    }, [productId, attributeMap]);
 
     const handleAttributeChange = (attributeType: string, value: string) => {
         // Update the selected attributes map with the new selection
@@ -168,7 +169,7 @@ export default function ProductPage() {
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <div className="space-y-4">
-                    <img
+                    <Image
                         src={ImageURL || productData[0]?.imageURL || "/placeholder.svg"}
                         alt={productData[0].Title}
                         className="w-full h-auto rounded-lg shadow-lg"

@@ -32,7 +32,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         try {
             setLoading(true);
             toast.promise(
-                deleteProduct(data.product_id.toString()),
+                data.id ? deleteProduct(data.id.toString()) : Promise.reject(new Error("Product ID is undefined")),
                 {
                     loading: "Deleting...🧨",
                     success: (res) => (
@@ -107,14 +107,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
-                        onClick={() => onCopy(data.product_id.toString())}
+                        onClick={() => onCopy((data.id ?? '').toString())}
                     >
                         <Copy className="mr-2 h-4 w-4" /> Copy Id
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() =>
                             router.push(
-                                `/admin/products/${data.product_id}`,
+                                `/admin/products/${data.id}`,
                             )
                         }
                     >

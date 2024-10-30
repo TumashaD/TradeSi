@@ -149,7 +149,7 @@ export default function CardManager({ customerId }: { customerId: number }) {
               >
                 <CreditCard className="h-16 w-16 mx-auto mb-4 text-primary" />
                 <h2 className="text-2xl font-semibold mb-2">No Cards Saved</h2>
-                <p className="text-muted-foreground mb-6">You haven't added a card yet. Add one now to get started!</p>
+                <p className="text-muted-foreground mb-6">You haven&apos;t added a card yet. Add one now to get started!</p>
                 <Button onClick={() => setIsAddingCard(true)} size="lg" className="w-full max-w-sm">
                   <PlusCircle className="mr-2 h-5 w-5" /> Add New Card
                 </Button>

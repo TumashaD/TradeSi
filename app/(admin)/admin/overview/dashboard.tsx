@@ -64,7 +64,7 @@ const DashboardClient = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [startDate, endDate, selectedYear]);
 
     const handleYearChange = async (year: number) => {
         setSelectedYear(year);

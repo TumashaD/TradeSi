@@ -141,7 +141,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
         CVV: "",
       });
     }
-  }, [customer]);
+  }, [customer, card?.Card_Number, card?.Expiry_Date, card?.Name_On_Card]);
 
   // Check stock and set delivery time
   useEffect(() => {
@@ -175,7 +175,7 @@ export function CheckoutForm({ products, totalPrice}: CheckoutFormProps) {
     });
 
     setEstimatedDeliveryTime(deliveryTime);
-  }, [products, form.watch("Delivery_Method"), form.watch("City")]);
+  }, [products,form, form.watch("Delivery_Method"), form.watch("City")]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
 

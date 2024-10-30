@@ -14,7 +14,7 @@ export default function GridSection() {
                 <Link href="/products?query=Smartphones">
                     <div className="flex flex-col  rounded-lg bg-primarycolour p-6 justify-center">
 
-                        <img
+                        <Image
                             loading="eager"
                             width={400}
                             height={400}
@@ -34,7 +34,7 @@ export default function GridSection() {
                     <Link href="/products?category=Headphones">
                         <div className="flex flex-col justify-between rounded-lg bg-gray-600 p-6">
 
-                            <img
+                            <Image
                                 loading="eager"
                                 width={150}
                                 height={150}
@@ -53,7 +53,7 @@ export default function GridSection() {
                     <Link href="/products?category=Laptops">
                         <div className="flex flex-col justify-between rounded-lg bg-blue-200 p-6">
 
-                            <img
+                            <Image
                                 loading="eager"
                                 width={200}
                                 height={200}
@@ -71,7 +71,7 @@ export default function GridSection() {
                     {/* Smartwatches section */}
                     <div className="col-span-2 flex  justify-between items-center rounded-lg bg-gray-200 p-6 px-20">
                         <Link href="/products?category=Smartwatches">
-                            <img
+                            <Image
                                 loading="eager"
                                 width={250}
                                 height={250}

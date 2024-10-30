@@ -26,7 +26,7 @@ export const columns: ColumnDef<Product>[] = [
         cell: ({ row }) => (
             <div className="flex items-center gap-x-2">
                 <span className="text-lg font-semibold">
-                    ${row.original.base_price}
+                    ${row.original.basePrice}
                 </span>
             </div>
         ),
@@ -48,8 +48,8 @@ export const columns: ColumnDef<Product>[] = [
         header: "Image",
         cell: ({ row }) => (
             <div className="flex items-center gap-x-2">
-                <img
-                    src={row.original.imageURL}
+                <Image
+                    src={row.original.imageUrl}
                     alt={row.original.title}
                     width={150}
                     height={150}

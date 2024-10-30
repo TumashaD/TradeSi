@@ -16,7 +16,7 @@ const ProfilePage = async () => {
   if (!user) {
     return null;
   }
-  const orders = await getCustomerOrders(user.id.toString());
+  const orders = user.id ? await getCustomerOrders(user.id.toString()) : [];
   const ordersArray = Array.isArray(orders) ? orders : [];
   return (
     <div className="w-full h-screen flex flex-col">
@@ -35,7 +35,7 @@ const ProfilePage = async () => {
           <ProfileForm user={user} />
         </div>
         <div className="flex gap-16 mb-4"> {/* Add margin-bottom here */}
-          <CardManager customerId={user.id} />
+          <CardManager customerId={user.id ?? 0} />
           <ProfileOrders orders={ordersArray} />
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckoutForm } from './CheckoutForm';
 import { getCurrentUser } from "@/lib/services/customer"; 
 import { Toaster } from 'react-hot-toast';
+import Image from 'next/image';
 
 type CartItemDetail = {
     Item_ID: number;
@@ -49,7 +50,7 @@ const CheckoutPage = () => {
                         {cartItems.map((item) => (
                             <li key={item.Item_ID} className="flex py-6">
                                 <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                    <img src={item.imageURL} alt={item.Title} className="h-full w-full object-cover object-center" />
+                                    <Image src={item.imageURL} alt={item.Title} className="h-full w-full object-cover object-center" />
                                 </div>
 
                                 <div className="ml-4 flex flex-1 flex-col">
