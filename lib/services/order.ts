@@ -2,6 +2,7 @@
 
 import getDatabase from '@/lib/db';
 import { getCustomerCart } from './cart';
+import { getCurrentGuestSession } from '../user';
 
 export async function makeOrder(
     products: { Item_ID: bigint; Quantity: number }[], // Adjust type as needed
@@ -19,6 +20,7 @@ export async function makeOrder(
     }
 ): Promise<void> {
     const connection = await getDatabase(); // Await the connection to the database
+    const currentSession = await getCurrentGuestSession();
 
     try {
         // Step 1: Insert into Payment Table
@@ -27,7 +29,7 @@ export async function makeOrder(
         const paymentId = (paymentResult as any).insertId; // Access insertId from the result
 
         // Step 2: Insert into Delivery Table
-        const [deliveryResult] = await connection.query<any>('INSERT INTO Delivery (Deliverey_type, Status) VALUES (?, ?)', [formData.deliveryType, 'Processing']);
+        const [deliveryResult] = await connection.query<any>('INSERT INTO Delivery (Delivery_type, Status) VALUES (?, ?)', [formData.deliveryType, 'Processing']);
         const deliveryId = (deliveryResult as any).insertId; // Access insertId from the result
         const currentDateTime = new Date();
 
@@ -55,12 +57,12 @@ export async function makeOrder(
             ]);
         }
 
-
-        // get the cart id
-        const cartId = await getCustomerCart(customer.Customer_ID, true);
-        // delete the cart items
-        await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ?', [cartId]);
-
+        const cartIdCustomer = await getCustomerCart(customer.Customer_ID, true);
+        // get the cart id of the session
+        if (currentSession) {
+            const cartIdSession = await getCustomerCart(currentSession, false);
+            await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ? OR ?', [cartIdCustomer, cartIdSession]);
+        }
 
     } catch (error) {
         console.error('Failed to create order:', error);
@@ -89,6 +91,20 @@ export async function GetCard(customerId: number): Promise<Array<{ Card_ID: numb
         }));
     } catch (error) {
         console.error('Failed to retrieve card details:', error);
+        throw error; // Handle or rethrow as needed
+    }
+}
+
+export async function updateDeliveryStatus(orderId: number, status: string): Promise<void> {
+    const connection = await getDatabase(); // Await the connection to the database
+
+    try {
+        await connection.query<any>(`UPDATE Delivery d
+JOIN TradeSi.Order o ON d.Delivery_ID = o.Delivery_ID
+SET d.Status = ?
+WHERE o.Order_ID = ?;`, [status, orderId]);
+    } catch (error) {
+        console.error('Failed to update delivery status:', error);
         throw error; // Handle or rethrow as needed
     }
 }

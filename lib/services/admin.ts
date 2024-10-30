@@ -20,7 +20,7 @@ export async function getTotalOrders(): Promise<number | null> {
     try {
         const connection = await getDatabase();  // Await the connection to the database
         const [rows] = await connection.query<any>(
-            'SELECT COUNT(*) as total FROM TradeSi.Payment'
+            'SELECT COUNT(*) as total FROM TradeSi.Order'
         );
 
         return rows[0].total || null;  // Return the total number of orders
@@ -40,7 +40,7 @@ export async function getAvgOrderValue(): Promise<number | null> {
     } catch (error) {
         console.error('Failed to fetch orders:', error);
         return null;
-    }
+    } 
 }
 
 export async function getCustomerOrderReport(): Promise<CustomerOrderReport | null> {

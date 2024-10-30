@@ -26,7 +26,7 @@ export default async function UserAvatarOptions() {
             <Button
                 variant="outline"
                 size="lg"
-                className="flex items-center gap-2 px-6 py-2 transition-all hover:bg-slate-100 hover:scale-105"
+                className="flex items-center gap-2 px-6 py-2 transition-all hover:bg-slate-100 dark:hover:bg-gray-700 hover:scale-105"
             >
                 <Link href="/login" className="font-medium flex gap-3">
                     <LogIn className="w-4 h-4" />

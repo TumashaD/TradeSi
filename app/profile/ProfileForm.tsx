@@ -6,6 +6,7 @@ import { User } from "@/types/user";
 import { updateCustomer } from "@/lib/services/customer";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import CardManager from "./FullScreenCardManager";
 
 interface ProfileFormProps {
   user: User | null; // Accept customer data as a prop
@@ -95,10 +96,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
               onChange={handleChange}
             />
           </div>
-        </div>
 
-        {/* Right Column */}
-        <div className="flex-1 space-y-8">
           <div>
             <label>Telephone</label>
             <Input
@@ -108,6 +106,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
               onChange={handleChange}
             />
           </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="flex-1 space-y-8">
+         
 
           <div>
             <label>House No</label>
@@ -158,6 +161,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
               onChange={handleChange}
             />
           </div>
+
+          
         </div>
       </div>
 

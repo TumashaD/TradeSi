@@ -13,12 +13,13 @@ import { useRouter } from "next/navigation";
 export default function LogInPage() {
     const { pending } = useFormStatus();
     const router = useRouter();
+
     const handleLogin = async (formData: FormData) => {
         try {
             const response = await login(formData);
             if (!response.errors) {
                 toast.success("Logged in successfully.");
-                router.push("/");
+                router.replace("/");
             }
             if (response.errors?.email) {
                 toast.error(response.errors.email.toString());
@@ -28,22 +29,35 @@ export default function LogInPage() {
             }
         } catch (error) {
             console.log(error);
-
             toast.error("Something went wrong.");
         }
     };
+
+    const handleGuestRedirect = () => {
+        router.push("/");
+    };
+
     return (
         <div className="container relative h-[100dvh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="relative hidden h-full w-full flex-col bg-muted dark:border-r lg:flex">
                 <Image
-                    loading="eager" // preloads the image before it's in the viewport
-                    fill // stretches the image to fit the container
-                    sizes="(max-width: 600px) 100vw, 640px" // responsive image sizes
+                    loading="eager"
+                    fill
+                    sizes="(max-width: 600px) 100vw, 640px"
                     src="/loginimg.jpg"
                     alt="new headphone"
                     className="object-cover"
                 />
             </div>
+            {/* Guest login button at the top-right corner */}
+            <Button
+                onClick={handleGuestRedirect}
+                variant="outline"
+                className="absolute top-4 right-4"
+                size="sm"
+            >
+                Continue as Guest
+            </Button>
             <div className="pt-16 lg:p-8">
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <div className="flex flex-col space-y-2 text-center">

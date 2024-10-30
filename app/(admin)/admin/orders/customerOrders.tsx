@@ -4,6 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package } from "lucide-react";
 import { getCustomerOrders } from "@/lib/services/admin";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { updateDeliveryStatus } from "@/lib/services/order";
 
 interface Order {
     orderId: string;
@@ -36,6 +38,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ customer, isOpen,
         }
     }, [customer]);
 
+    const handleStatusChange = (orderId: string, newStatus: string) => {
+        setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+                order.orderId === orderId ? { ...order, status: newStatus } : order
+            )
+        );
+        updateDeliveryStatus(Number(orderId), newStatus);
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose} >
             <DialogContent >
@@ -66,7 +77,22 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ customer, isOpen,
                                             {order.items}
                                         </TableCell>
                                         <TableCell className="text-right">${order.total}</TableCell>
-                                        <TableCell>{order.status}</TableCell>
+                                        <TableCell>
+                                        <Select
+                                                value={order.status}
+                                                onValueChange={(value) => handleStatusChange(order.orderId, value)}
+                                            >
+                                                <SelectTrigger>{order.status}</SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Processing">Processing</SelectItem>
+                                                    <SelectItem value="Shipped">Shipped</SelectItem>
+                                                    <SelectItem value="Delivered">Delivered</SelectItem>
+                                                    <SelectItem value="In Transit">In Transit</SelectItem>
+                                                    <SelectItem value="Ready for Pickup">Ready to Pick</SelectItem>
+                                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
