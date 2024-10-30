@@ -61,7 +61,9 @@ export async function getCategories(): Promise<string[]> {
 
     try {
         const connection = await getDatabase();  // Await the connection to the database
-        const [rows] = await connection.query<any>('SELECT c.category_id, c.Name FROM TradeSi.Category c WHERE c.Parent_Category_ID IS NULL');
+        const [rows] = await connection.query<any>(
+            'SELECT c.category_id, c.Name FROM TradeSi.Category c WHERE c.Parent_Category_ID IS NULL'
+        );
         // return rows as {category_id: bigint, Name: string}[]; // Return only category id and category name
         const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
         return categoryNames as string[];
