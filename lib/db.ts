@@ -15,23 +15,23 @@ class Database {
 
     private constructor() {
         const {
-            DB_HOSTNAME,
-            DB_PORT,
-            DB_USER,
-            DB_PASSWORD,
-            DB_DATABASE
+            NEXT_PUBLIC_DB_HOSTNAME,
+            NEXT_PUBLIC_DB_PORT,
+            NEXT_PUBLIC_DB_USER,
+            NEXT_PUBLIC_DB_PASSWORD,
+            NEXT_PUBLIC_DB_DATABASE
         } = process.env;
 
-        if (!DB_HOSTNAME || !DB_USER || !DB_PASSWORD || !DB_DATABASE) {
+        if (!NEXT_PUBLIC_DB_HOSTNAME || !NEXT_PUBLIC_DB_USER || !NEXT_PUBLIC_DB_PASSWORD || !NEXT_PUBLIC_DB_DATABASE) {
             throw new Error('Missing required database configuration environment variables');
         }
 
         this.pool = mysql.createPool({
-            host: DB_HOSTNAME,
-            port: DB_PORT ? Number(DB_PORT) : 3306,
-            user: DB_USER,
-            password: DB_PASSWORD,
-            database: DB_DATABASE,
+            host: NEXT_PUBLIC_DB_HOSTNAME,
+            port: NEXT_PUBLIC_DB_PORT ? Number(NEXT_PUBLIC_DB_PORT) : 3306,
+            user: NEXT_PUBLIC_DB_USER,
+            password: NEXT_PUBLIC_DB_PASSWORD,
+            database: NEXT_PUBLIC_DB_DATABASE,
             multipleStatements: true,
         });
     }
