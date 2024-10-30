@@ -71,6 +71,23 @@ export async function getCategories(): Promise<string[]> {
     }
 }
 
+export async function getSubCategories(category: string): Promise<string[]>{
+    console.log('category:', category);
+    try {
+        const connection = await getDatabase();
+        const [rows] = await connection.query<any>(
+            'select c.Name from Category c  where c.Parent_Category_ID in (select pc.Category_ID from Category pc where pc.Name = ?);',
+            [category]
+        );
+        const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
+        console.log(categoryNames);
+        return categoryNames as string[];
+    } catch (error) {
+        console.error('Failed to fetch subcategories:', error);
+        return [];
+    }
+}
+
 export async function fetchProductData(id: string): Promise<ProductData[][] | null> {
     try {
         const connection = await getDatabase();
