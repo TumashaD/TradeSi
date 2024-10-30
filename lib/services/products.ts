@@ -94,7 +94,7 @@ export async function getSubCategories(category: string): Promise<string[]>{
             [category]
         );
         const categoryNames = rows.map((row: { Name: string }) => row.Name);  // Extract the 'Name' property
-        console.log(categoryNames);
+        // console.log(categoryNames);
         return categoryNames as string[];
     } catch (error) {
         console.error('Failed to fetch subcategories:', error);
@@ -121,7 +121,7 @@ export async function getAllAttributeTypes(): Promise<Attribute[]> {
     try {
         const connection = await getDatabase();
         const [rows] = await connection.query<any>('SELECT * FROM TradeSi.Attribute_type;');
-        console.log(rows);
+        // console.log(rows);
         return rows as Attribute[];
     } catch (error) {
         console.error('Failed to fetch attributes:', error);
@@ -163,7 +163,7 @@ export async function addProduct(product: Product): Promise<boolean> {
         );
 
         // If everything succeeded, commit the transaction
-        console.log('Product added successfully:', productResult[0]);
+        // console.log('Product added successfully:', productResult[0]);
         return true;
 
     } catch (error) {
