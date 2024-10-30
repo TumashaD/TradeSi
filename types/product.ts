@@ -1,13 +1,34 @@
 import { RowDataPacket } from "mysql2";
 
-export type Product = {
-    product_id: number;
-    title: string;
-    description: string;
-    base_price: number;
-    imageURL: string;
-    category: string;
-};
+export type Attribute = {
+    type_id: string
+    name: string
+  }
+  
+ export  type Variant = {
+    sku: string
+    quantity: number
+    imageUrl: string
+    priceIncrement: number
+    attributes: Attribute[]
+  }
+  
+  export type Product = {
+    id?: number
+    title: string
+    description: string
+    basePrice: number
+    imageUrl: string
+    category: number
+    attributes: Attribute[]
+    variants: Variant[]
+  }
+  
+  export type Category = {
+    Category_ID: number,
+    Name: string,
+    Parent_Category_ID?: number | null
+    }
 
 export interface ProductData extends RowDataPacket {
     Product_ID: bigint;

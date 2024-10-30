@@ -1,47 +1,23 @@
-// import { ProductForm } from "@/components/admin/product-form";
-
-// const ProductPage = async () => {
-
-//     return (
-//         <div className="flex-col">
-//             <div className="flex-1 space-y-4 p-8 pt-6">
-//                 <ProductForm />
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default ProductPage;
-
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Product, Attribute, Variant, Category } from "@/types/product"
+import { addProduct, getAllCategories ,getAllAttributeTypes} from '@/lib/services/products'
+import toast from 'react-hot-toast'
 
-type Attribute = {
-  type: string
-  name: string
-}
-
-type Variant = {
-  sku: string
-  quantity: number
-  imageUrl: string
-  attributes: Attribute[]
-}
-
-type Product = {
-  title: string
-  description: string
-  basePrice: number
-  imageUrl: string
-  variants: Variant[]
-}
 
 export default function AddProductPage() {
   const [product, setProduct] = useState<Product>({
@@ -49,13 +25,42 @@ export default function AddProductPage() {
     description: '',
     basePrice: 0,
     imageUrl: '',
+    category: 0,
+    attributes: [],
     variants: []
   })
+  const [categories, setCategories] = useState<Category[]>([])
+  const [attributeTypes, setAttributeTypes] = useState<Attribute[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const categories = await getAllCategories()
+      const attributeTypes = await getAllAttributeTypes()
+      console.log(attributeTypes)
+      setAttributeTypes(attributeTypes)
+      setCategories(categories)
+    }
+    fetchData()
+  }, [])
+
+  const addProductAttribute = () => {
+    setProduct(prev => ({
+      ...prev,
+      attributes: [...prev.attributes, { type_id: '', name: '' }]
+    }))
+  }
+
+  const removeProductAttribute = (index: number) => {
+    setProduct(prev => ({
+      ...prev,
+      attributes: prev.attributes.filter((_, i) => i !== index)
+    }))
+  }
 
   const addVariant = () => {
     setProduct(prev => ({
       ...prev,
-      variants: [...prev.variants, { sku: '', quantity: 0, imageUrl: '', attributes: [] }]
+      variants: [...prev.variants, { sku: '', quantity: 0, imageUrl: '', priceIncrement: 0, attributes: [] }]
     }))
   }
 
@@ -75,21 +80,35 @@ export default function AddProductPage() {
     }))
   }
 
-  const addAttribute = (variantIndex: number) => {
+  const addVariantAttribute = (variantIndex: number) => {
     setProduct(prev => ({
       ...prev,
       variants: prev.variants.map((v, i) => 
-        i === variantIndex ? { ...v, attributes: [...v.attributes, { type: '', name: '' }] } : v
+        i === variantIndex ? { ...v, attributes: [...v.attributes, { type_id: '', name: '' }] } : v
       )
     }))
   }
 
-  const updateAttribute = (variantIndex: number, attrIndex: number, field: keyof Attribute, value: string) => {
+  const handleCategoryChange = (value: string) => {
+      const category = parseInt(value, 10);
+      setProduct((prev) => ({ ...prev, category }));
+  };
+
+  const updateProductAttribute = (index: number, field: keyof Attribute, value: string) => {
+    setProduct(prev => ({
+      ...prev,
+      attributes: prev.attributes.map((attr, i) => 
+        i === index ? { ...attr, [field]: value } : attr
+      )
+    }))
+  }
+
+  const updateVariantAttribute = (variantIndex: number, attrIndex: number, field: keyof Attribute, value: string) => {
     setProduct(prev => ({
       ...prev,
       variants: prev.variants.map((v, i) => 
-        i === variantIndex ? {
-          ...v,
+        i === variantIndex ? { 
+          ...v, 
           attributes: v.attributes.map((attr, j) => 
             j === attrIndex ? { ...attr, [field]: value } : attr
           )
@@ -98,9 +117,16 @@ export default function AddProductPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Submitting product:', product)
+    const result = await addProduct(product)
+    if (result) {
+      toast('Product added successfully!')
+    }
+    else {
+      toast.error('Failed to add product')
+    }
     // Here you would typically send the data to your backend
   }
 
@@ -147,6 +173,68 @@ export default function AddProductPage() {
               onChange={(e) => setProduct(prev => ({ ...prev, imageUrl: e.target.value }))}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select onValueChange={handleCategoryChange}>
+              <SelectTrigger>
+              <SelectValue placeholder="Select a category">
+                {categories.find((cat) => cat.Category_ID === product.category)?.Name}
+              </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category.Category_ID} value={category.Category_ID.toString()}>
+                {category.Name}
+                </SelectItem>
+              ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Product Attributes</Label>
+            {product.attributes.map((attr, index) => (
+              <div key={index} className="flex space-x-2">
+                {/* Select for attribute type */}
+                <Select onValueChange={(value) => updateProductAttribute(index, 'type_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type">
+                      {attributeTypes.find((type) => type.type_id === attr.type_id)?.name}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {attributeTypes.map((type) => (
+                      <SelectItem key={type.type_id} value={type.type_id.toString()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input 
+                  placeholder="Name"
+                  value={attr.name} 
+                  onChange={(e) => updateProductAttribute(index, 'name', e.target.value)}
+                  required
+                />
+                <Button 
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeProductAttribute(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={addProductAttribute}
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Product Attribute
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -198,30 +286,66 @@ export default function AddProductPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Attributes</Label>
+                  <Label htmlFor={`priceIncrement-${variantIndex}`}>Price Increment</Label>
+                  <Input 
+                    id={`priceIncrement-${variantIndex}`}
+                    type="number"
+                    value={variant.priceIncrement} 
+                    onChange={(e) => updateVariant(variantIndex, 'priceIncrement', parseFloat(e.target.value))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Variant Attributes</Label>
                   {variant.attributes.map((attr, attrIndex) => (
                     <div key={attrIndex} className="flex space-x-2">
-                      <Input 
-                        placeholder="Type"
-                        value={attr.type} 
-                        onChange={(e) => updateAttribute(variantIndex, attrIndex, 'type', e.target.value)}
-                        required
-                      />
+                      {/* Select for attribute type */}
+                      <Select onValueChange={(value) => updateVariantAttribute(variantIndex, attrIndex, 'type_id', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Type">
+                            {attributeTypes.find((type) => type.type_id === attr.type_id)?.name}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {attributeTypes.map((type) => (
+                            <SelectItem key={type.type_id} value={type.type_id.toString()}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Input 
                         placeholder="Name"
                         value={attr.name} 
-                        onChange={(e) => updateAttribute(variantIndex, attrIndex, 'name', e.target.value)}
+                        onChange={(e) => updateVariantAttribute(variantIndex, attrIndex, 'name', e.target.value)}
                         required
                       />
+                     {/* Remove The Attribute */}
+                      <Button 
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => setProduct(prev => ({
+                          ...prev,
+                          variants: prev.variants.map((v, i) => 
+                            i === variantIndex ? { 
+                              ...v, 
+                              attributes: v.attributes.filter((_, j) => j !== attrIndex)
+                            } : v
+                          )
+                        }))}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                   <Button 
                     type="button" 
                     variant="outline" 
                     size="sm"
-                    onClick={() => addAttribute(variantIndex)}
+                    onClick={() => addVariantAttribute(variantIndex)}
                   >
-                    <Plus className="h-4 w-4 mr-2" /> Add Attribute
+                    <Plus className="h-4 w-4 mr-2" /> Add Variant Attribute
                   </Button>
                 </div>
               </CardContent>

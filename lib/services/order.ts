@@ -58,10 +58,11 @@ export async function makeOrder(
         }
 
         const cartIdCustomer = await getCustomerCart(customer.Customer_ID, true);
+        await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ?', [cartIdCustomer]);
         // get the cart id of the session
         if (currentSession) {
             const cartIdSession = await getCustomerCart(currentSession, false);
-            await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ? OR ?', [cartIdCustomer, cartIdSession]);
+            await connection.query<any>('DELETE FROM Cart_Item WHERE Cart_ID = ?', [cartIdSession]);
         }
 
     } catch (error) {

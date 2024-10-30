@@ -1,7 +1,7 @@
 'use server';
 
 import getDatabase from '@/lib/db';
-import { Product, ProductData } from "@/types/product";
+import { Product, ProductData,Category, Attribute } from "@/types/product";
 
 
 export async function getProducts(
@@ -71,6 +71,18 @@ export async function getCategories(): Promise<string[]> {
     }
 }
 
+export async function getAllCategories(): Promise<Category[]> {
+    try {
+        const connection = await getDatabase();
+        const [rows] = await connection.query<any>('SELECT * FROM TradeSi.Category;');
+        return rows as Category[];
+
+    } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        return [];
+    }
+}
+
 export async function getSubCategories(category: string): Promise<string[]>{
     console.log('category:', category);
     try {
@@ -100,5 +112,61 @@ export async function fetchProductData(id: string): Promise<ProductData[][] | nu
     } catch (error) {
         console.error('Failed to fetch product data:', error);
         return [];
+    }
+}
+
+export async function getAllAttributeTypes(): Promise<Attribute[]> {
+    try {
+        const connection = await getDatabase();
+        const [rows] = await connection.query<any>('SELECT * FROM TradeSi.Attribute_type;');
+        console.log(rows);
+        return rows as Attribute[];
+    } catch (error) {
+        console.error('Failed to fetch attributes:', error);
+        return [];
+    }
+}
+
+
+export async function addProduct(product: Product): Promise<boolean> {
+    
+    try {
+        // Start transaction
+        const connection = await getDatabase();
+
+        // 1. Insert main product
+        const [productResult] = await connection.query<any>(
+            'CALL AddProduct(?, ?, ?, ?, ?, ?, ?)',
+            [
+                product.title,
+                product.description,
+                product.basePrice,
+                product.imageUrl,
+                product.category,
+                JSON.stringify(product.attributes?.map(attr => ({
+                    type_id: parseInt(attr.type_id),
+                    value: attr.name
+                }))).replace(/\\/g, ""),
+                JSON.stringify(product.variants?.map(variant => ({
+                    sku: variant.sku,
+                    quantity: variant.quantity,
+                    imageUrl: variant.imageUrl,
+                    price_increment: variant.priceIncrement,
+                    attributes: variant.attributes.map(attr => ({
+                        type_id: parseInt(attr.type_id),
+                        value: attr.name
+                    }))
+                }))).replace(/\\/g, "")
+            ]
+        );
+
+        // If everything succeeded, commit the transaction
+        console.log('Product added successfully:', productResult[0]);
+        return true;
+
+    } catch (error) {
+        // If there's an error, roll back the transaction
+        console.error('Failed to add product:', error);
+        return false;
     }
 }

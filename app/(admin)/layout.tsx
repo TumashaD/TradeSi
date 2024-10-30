@@ -1,7 +1,7 @@
 import "@/app/globals.css";
 import { MainNav } from "@/components/layout/admin-nav";
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import BackButton  from "@/components/admin/back-button";
 import AdminMobileMenu from "../../components/layout/admin-mobile-nav";
 import { verifySession } from "@/lib/dal";
@@ -18,7 +18,7 @@ export default async function RootLayout({
 }>) {
     const session = await verifySession();
     if (!session || !session.isAdmin) {
-        redirect("/");
+        redirect("/login");
     }
     return (
         <>
