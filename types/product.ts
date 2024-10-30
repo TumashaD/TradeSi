@@ -69,3 +69,9 @@ export interface ProductPageQueryParams {
         query?: string;
     };
 }
+
+export interface FixedAttribute{
+    Attribute_ID: number | null;
+    Attribute_Value: string;
+    Attribute_Type_Name: string;
+}
