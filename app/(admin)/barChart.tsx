@@ -54,7 +54,7 @@ const ChartBar: React.FC<ChartBar> = ({
                                     if (name === "quarterlySales") {
                                         const { payload } = props;
                                         return [
-                                            <div key={`quarterlySales-${payload.total_orders}`} className="flex flex-col">
+                                            <div key={`quarterlySales-${payload.total_orders}`}  className="flex flex-col">
                                                 <span>Total Orders: {payload.total_orders}</span>
                                                 <span>Total Revenue: ${value}</span>
                                             </div>

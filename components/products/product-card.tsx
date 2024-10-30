@@ -8,11 +8,8 @@ import Link from "next/link";
 import { useStore } from "@/store/store";
 import { useMounted } from "@/hooks/use-mounted";
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product }: { product: any }) {
 
-    const decQty = useStore.use.decQty();
-    const products = useStore((state) => state.products);
-    const productQnt = products.find((p) => p.id === product.id)?.quantity;
     console.log(product);
 
 
@@ -22,12 +19,12 @@ export default function ProductCard({ product }: { product: Product }) {
     return (
         <article className="group flex h-full max-h-full  w-full animate-fadeIn flex-col space-y-2 rounded-md border-2 bg-background-secondary p-4  shadow-sm transition-opacity dark:border-0">
             <Link
-                href={`/products/${product.id}`}
+                href={`/products/${product.product_id}`}
                 passHref
                 className="flex max-h-48 flex-1 rounded bg-white py-4 dark:bg-white"
             >
                 <Image
-                    src={product.imageUrl}
+                    src={product.imageURL}
                     width={300}
                     height={300}
                     alt={product.title}
@@ -36,7 +33,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </Link>
             <div className="flex flex-1 flex-col justify-between gap-4">
                 <Link
-                    href={`/products/${product.id}`}
+                    href={`/products/${product.product_id}`}
                     passHref
                     className="line-clamp-2 text-sm font-semibold"
                 >
@@ -61,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
                 <div className="flex items-baseline justify-between">
                     <p className="text-base font-bold leading-none">
-                        ${product.basePrice}
+                        ${product.base_price}
                     </p>
                 </div>
             </div>

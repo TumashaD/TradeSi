@@ -53,7 +53,7 @@ const formSchema = z.object({
 type ProductFormValues = z.infer<typeof formSchema>;
 
 interface ProductFormProps {
-    product?: Product | null;
+    product?: any;
 }
 
 const categories = Object.values(ProductCategory);
@@ -71,8 +71,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product }) => {
     const defaultValues = product
         ? {
               ...product,
-              price: parseFloat(String(product?.basePrice)),
-              category: product.category as unknown as ProductCategory,
+              price: parseFloat(String(product?.base_price)),
+              category: product.category as ProductCategory,
           }
         : {
               title: "",
@@ -103,7 +103,7 @@ console.log(form.formState.isSubmitting);
             setLoading(true);
             if (product) {
                 const res = await updateProduct(
-                    product?.id?.toString() ?? "",
+                    product.product_id.toString(),
                     formData,
                 );
                 if ("data" in res) {
@@ -234,7 +234,7 @@ console.log(form.formState.isSubmitting);
         try {
             setLoading(true);
             toast.promise(
-                deleteProduct(product?.id?.toString() ?? ""),
+                deleteProduct(product.product_id.toString()),
                 {
                     loading: "Deleting...🧨",
                     success: (res) => (

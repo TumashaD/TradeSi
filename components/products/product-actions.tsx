@@ -5,14 +5,14 @@
 // import { Product } from "@/types/product";
 // import { Minus, Plus, ShoppingCart, Trash } from "lucide-react";
 
-// export default function ProductActions({ product }: { product: Product }) {
+// export default function ProductActions({ product }: { product: any}) {
 
 //     const incQty = useStore.use.incQty();
 //     const decQty = useStore.use.decQty();
 //     const addProduct = useStore.use.addProduct();
 //     const removeProduct =  useStore.use.removeProduct();
 //     const products = useStore((state) => state.products);
-//     const productQnt = products.find((p) => p.id === product.id)?.quantity;
+//     const productQnt = products.find((p) => p.product_id === product.product_id)?.quantity;
 
 
 //   return (
@@ -21,7 +21,7 @@
 //               variant="default"
 //               size="lg"
 //               className="px-4  min-[460px]:px-8"
-//               onClick={() => product.id !== undefined && decQty(product.id, product)}
+//               onClick={() => decQty(product.product_id, product)}
 //               disabled={!productQnt}
 //           >
 //               <Minus className="h-4 w-4" />
@@ -32,7 +32,7 @@
 //                       variant="destructive"
 //                       size="lg"
 //                       className="px-4 min-[460px]:px-8"
-//                       onClick={() => product.id !== undefined && removeProduct(product.id)}
+//                       onClick={() => removeProduct(product.product_id)}
 //                   >
 //                       <Trash className="mr-4" />
 //                       Remove from cart
@@ -53,7 +53,7 @@
 //               variant="default"
 //               size="lg"
 //               className="px-4 relative  min-[460px]:px-8"
-//               onClick={() => product.id !== undefined && incQty(product.id, product)}
+//               onClick={() => incQty(product.product_id, product)}
 //           >
 //               {productQnt && (
 //                   <span className="absolute right-0 top-0 -mr-1 -mt-2 flex h-5 w-5 items-center justify-center rounded-full  bg-red-500 text-xs text-white">

@@ -14,7 +14,7 @@ import {
     StarHalf,
 } from "lucide-react";
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<any>[] = [
     {
         accessorKey: "title",
         header: "Name",
@@ -26,7 +26,7 @@ export const columns: ColumnDef<Product>[] = [
         cell: ({ row }) => (
             <div className="flex items-center gap-x-2">
                 <span className="text-lg font-semibold">
-                    ${row.original.basePrice}
+                    ${row.original.base_price}
                 </span>
             </div>
         ),
@@ -49,7 +49,7 @@ export const columns: ColumnDef<Product>[] = [
         cell: ({ row }) => (
             <div className="flex items-center gap-x-2">
                 <Image
-                    src={row.original.imageUrl}
+                    src={row.original.imageURL}
                     alt={row.original.title}
                     width={150}
                     height={150}
