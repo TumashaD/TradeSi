@@ -34,12 +34,12 @@ export const verifySession = cache(async () => {
       return null;
     }
 
-    if (!process.env.NEXT_PUBLIC_JWT_SECRET_KEY) {
+    if (!process.env.JWT_SECRET_KEY) {
       throw new Error('JWT_SECRET_KEY is not defined in environment variables');
     }
 
     // Verify JWT token
-    const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET_KEY);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
     const { payload } = await jwtVerify(token, secret);
 
     if (!payload.sub || !payload.sessionId) {
