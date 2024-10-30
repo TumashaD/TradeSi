@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
-
 type CategoriesItemsProps = {
   categories: string[];
 };
@@ -18,27 +17,35 @@ export default function CategoriesItems({ categories }: CategoriesItemsProps) {
   const [subcategories, setSubcategories] = useState<{ [key: string]: string[] }>({});
 
   useEffect(() => {
-    // Function to fetch subcategories for the hovered category
     async function fetchSubcategories(category: string) {
-      if (!subcategories[category]) { // Fetch only if not already fetched
+      if (!subcategories[category]) {
         try {
-          const subs = await getSubCategories(category); // Wait for the subcategories to be fetched
-          setSubcategories((prev) => ({ ...prev, [category]: subs })); // Update state with fetched subcategories
+          const subs = await getSubCategories(category);
+          setSubcategories((prev) => ({ ...prev, [category]: subs }));
         } catch (error) {
           console.error("Error fetching subcategories:", error);
         }
       }
     }
 
-    // Fetch subcategories when a category is hovered
     if (hoveredCategory) {
       fetchSubcategories(hoveredCategory);
     }
-  }, [hoveredCategory, subcategories]); // Add subcategories as dependency to ensure state is checked
+  }, [hoveredCategory, subcategories]);
+
+  // Delay state reset when leaving dropdown area
+  let timeoutId: NodeJS.Timeout;
+  const handleMouseLeave = () => {
+    timeoutId = setTimeout(() => setHoveredCategory(null), 200);
+  };
+
+  const handleMouseEnter = (category: string) => {
+    clearTimeout(timeoutId); // Clear any scheduled state resets
+    setHoveredCategory(category);
+  };
 
   return (
     <>
-      {/* Button for 'All' category */}
       <div>
         <Button
           variant={"link"}
@@ -53,27 +60,21 @@ export default function CategoriesItems({ categories }: CategoriesItemsProps) {
         </Button>
       </div>
 
-      {/* Loop through categories */}
       {categories?.map((category) => {
         const link = `/products?category=${category}`;
-        const subcategoriesList = subcategories[category] || []; // Ensure subcategories is always an array
+        const subcategoriesList = subcategories[category] || [];
         return (
-          <div
-            key={category}
-            className="relative"
-            onMouseEnter={() => setHoveredCategory(category)}
-            onMouseLeave={() => setHoveredCategory(null)}
+          <div 
+            key={category} 
+            className="relative flex items-center space-x-2"
+            onMouseEnter={() => handleMouseEnter(category)}
+            onMouseLeave={handleMouseLeave}
           >
-
-            {/* Main Category Button */}
             <Button
               variant={"link"}
               className={clsx(
                 "h-9 p-0 underline-offset-4 hover:underline dark:hover:text-neutral-100",
-                {
-                  "underline underline-offset-4":
-                    currentCategory === category,
-                }
+                { "underline underline-offset-4": currentCategory === category }
               )}
             >
               <Link href={link} className="p-4">
@@ -81,9 +82,14 @@ export default function CategoriesItems({ categories }: CategoriesItemsProps) {
               </Link>
             </Button>
 
-            {/* Subcategories Dropdown on hover */}
+            {/* Subcategories dropdown */}
             {hoveredCategory === category && subcategoriesList.length > 0 && (
-              <div className="absolute top-full mt-2 w-48 bg-white dark:bg-neutral-800 shadow-md rounded-md p-2">
+              <div 
+                className="absolute left-full -ml-1 top-0 w-48 bg-white dark:bg-neutral-800 shadow-md rounded-md p-2"
+                style={{ zIndex: 1000 }}
+                onMouseEnter={() => handleMouseEnter(category)}  // Keep open when hovering over dropdown
+                onMouseLeave={handleMouseLeave}                  // Delay closing when leaving dropdown
+              >
                 {subcategoriesList.map((subcategory) => {
                   const subcategoryLink = `/products?category=${subcategory}`;
                   return (
