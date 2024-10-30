@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { addCartItem, fetchCartData, getCurrentCart, getCustomerCart } from "@/lib/services/cart";
-import { fetchProductData } from "@/lib/services/products";
-import { ProductData } from "@/types/product";
+import { fetchProductData, getFixedAttributes } from "@/lib/services/products";
+import { FixedAttribute, ProductData } from "@/types/product";
 import { useStore } from "@/store/store";
 import { getCurrentUser } from "@/lib/services/customer";
 import { useCart } from "@/lib/context/cardContext";
@@ -31,7 +31,7 @@ export default function ProductPage() {
     const [attributeMap, setAttributeMap] = useState<Map<string, string[]>>(new Map());
     const [selectedAttributes, setSelectedAttributes] = useState<Map<string, string>>(new Map());
     const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-
+    const [fixedAttributes, setFixedAttributes] = useState<FixedAttribute[]>([]);
 
     useEffect(() => {
         if (productId) {
@@ -41,6 +41,8 @@ export default function ProductPage() {
                     const ProductdataArray = await fetchProductData(productId);
                     if (ProductdataArray && ProductdataArray.length > 0) {
                         const newAttributeMap = new Map(attributeMap);
+                        const fetchedFixedAttributes = await getFixedAttributes(productId);
+                        setFixedAttributes(fetchedFixedAttributes); // Set fixed attributes in state
                         ProductdataArray[0].forEach((row: ProductData) => {
                             if (row.Attribute_Type_Name && row.value) {
                                 if (!newAttributeMap.has(row.Attribute_Type_Name)) {
@@ -52,6 +54,7 @@ export default function ProductPage() {
                                 }
                             }
                         });
+
 
                         const defaultRow = ProductdataArray[0][0];
                         if (defaultRow) {
@@ -161,7 +164,7 @@ export default function ProductPage() {
     }
 
     return (
-        console.log("ImageURL: ", ImageURL),
+        console.log(fixedAttributes),
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <div className="space-y-4">
@@ -174,6 +177,17 @@ export default function ProductPage() {
                         <h2 className="text-lg font-semibold mb-2">Description</h2>
                         <p>{productData[0].Title}</p>
                         <p>{productData[0].Description}</p>
+
+                        {/* Display Fixed Attributes */}
+                        <div>
+                            <h3 className="text-md font-semibold mt-2"><i>Attributes</i></h3>
+                            {/* Display Fixed Attributes */}
+                            {fixedAttributes.map((attr) => (
+                                <p key={attr.Attribute_ID}>
+                                    <i>{attr.Attribute_Type_Name}: {attr.Attribute_Value}</i>
+                                </p>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

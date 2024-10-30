@@ -1,7 +1,7 @@
 'use server';
 
 import getDatabase from '@/lib/db';
-import { Product, ProductData,Category, Attribute } from "@/types/product";
+import { Product, ProductData,Category, Attribute, FixedAttribute } from "@/types/product";
 
 
 export async function getProducts(
@@ -98,6 +98,33 @@ export async function getSubCategories(category: string): Promise<string[]>{
         return categoryNames as string[];
     } catch (error) {
         console.error('Failed to fetch subcategories:', error);
+        return [];
+    }
+}
+
+export async function getFixedAttributes(id: string): Promise<FixedAttribute[]> {
+    try {
+        const connection = await getDatabase();
+        const [rows] = await connection.query<any>(
+            'CALL GetFixedAttributes(?)',
+            [id]
+        );
+
+        const attributes = rows[0]; // Access the first array element
+
+        // Convert each attribute to a plain object
+        const plainRows = attributes.map((attribute: any) => ({
+            Attribute_ID: attribute.Attribute_ID,
+            Attribute_Value: attribute.Attribute_Value,
+            Attribute_Type_Name: attribute.Attribute_Type_Name,
+        }));
+
+
+        console.log("Processed Rows:", plainRows); // Log processed rows
+
+        return plainRows as FixedAttribute[];
+    } catch (error) {
+        console.error('Failed to fetch fixed attributes:', error);
         return [];
     }
 }
